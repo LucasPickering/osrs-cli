@@ -1,6 +1,6 @@
 use crate::{
     commands::Command,
-    utils::{context::CommandContext, hiscore::HiscorePlayer},
+    utils::{context::CommandContext, hiscore::HiscorePlayer, skill::Skill},
 };
 use structopt::StructOpt;
 
@@ -43,7 +43,7 @@ struct SourceOptions {
     #[structopt(short, long)]
     player: Vec<String>,
     #[structopt(short, long)]
-    skill: Option<String>,
+    skill: Option<Skill>,
 }
 
 /// Options that define the target xp value. Exactly one of these should
@@ -101,7 +101,7 @@ impl CalcXpCommand {
                     context.http_client(),
                     player.join(" "),
                 )?;
-                Ok(player.skill(&skill).xp)
+                Ok(player.skill(*skill).xp)
             }
 
             // Anything else is invalid input, freak out!

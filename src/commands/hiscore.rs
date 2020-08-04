@@ -37,7 +37,7 @@ impl Command for HiscoreCommand {
         table.set_titles(row!["Skill", r->"Rank", r->"Level", r->"XP"]);
         for skill in player.skills() {
             table.add_row(row![
-                skill.name,
+                skill.skill,
                 r->context.fmt_num(&skill.rank),
                 r->context.fmt_num(&skill.level),
                 r->context.fmt_num(&skill.xp),

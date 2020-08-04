@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 anyhow = "^1.0.32"
 csv = "^1.1.3"
+lazy_static = "^1.4.0"
 num-format = { version = "^0.4.0", features = ["with-system-locale"] }
 prettytable-rs = "^0.8.0"
 reqwest = { version = "^0.10.7", features = ["blocking"] }

@@ -860,6 +860,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "csv",
+ "lazy_static",
  "num-format",
  "prettytable-rs",
  "reqwest",
