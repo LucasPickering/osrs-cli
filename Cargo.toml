@@ -2,6 +2,8 @@
 name = "osrs-cli"
 version = "0.1.0"
 authors = ["Lucas Pickering <lucas@lucaspickering.me>"]
+description = "Command line utility program for Oldschool RuneScape"
+license = "MIT"
 edition = "2018"
 
 [dependencies]
