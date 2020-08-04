@@ -29,7 +29,8 @@ impl Command for HiscoreCommand {
             options.username.join(" "),
         )?;
 
-        // Print a pretty table
+        // Print a table for skills
+        println!("Skills");
         let mut table = Table::new();
         table.set_format(
             *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
@@ -41,6 +42,23 @@ impl Command for HiscoreCommand {
                 r->context.fmt_num(&skill.rank),
                 r->context.fmt_num(&skill.level),
                 r->context.fmt_num(&skill.xp),
+            ]);
+        }
+        table.printstd();
+        println!();
+
+        // Print a table for minigames/bosses/etc.
+        println!("Minigames");
+        let mut table = Table::new();
+        table.set_format(
+            *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
+        );
+        table.set_titles(row!["Minigame", r->"Rank", r->"Score"]);
+        for minigame in player.minigames() {
+            table.add_row(row![
+                minigame.name,
+                r->context.fmt_num(&minigame.rank),
+                r->context.fmt_num(&minigame.score),
             ]);
         }
         table.printstd();

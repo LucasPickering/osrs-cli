@@ -13,14 +13,75 @@ use std::{collections::HashMap, convert::TryInto};
 const HISCORE_URL: &str =
     "https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws";
 
+/// The list of minigames tracked in the hiscore. This order is very important
+/// because it corresponds to the order they are in the response.
+/// TODO fill this list out
+const MINIGAMES: &[&str] = &[
+    "1?",
+    "2?",
+    "3?",
+    "Clue Scroll (All)",
+    "Clue Scroll (Beginner)",
+    "Clue Scroll (Easy)",
+    "Clue Scroll (Medium)",
+    "Clue Scroll (Hard)",
+    "Clue Scroll (Elite)",
+    "Clue Scroll (Master)",
+    "11?",
+    "12?",
+    "13?",
+    "Barrows Chests",
+    "15?",
+    "16?",
+    "17?",
+    "18?",
+    "19?",
+    "20?",
+    "21?",
+    "22?",
+    "23?",
+    "24?",
+    "25?",
+    "26?",
+    "27?",
+    "28?",
+    "General Graardor",
+    "Giant Mole",
+    "31?",
+    "Hespori",
+    "33?",
+    "34?",
+    "35?",
+    "36?",
+    "37?",
+    "38?",
+    "39?",
+    "40?",
+    "41?",
+    "42?",
+    "43?",
+    "44?",
+    "45?",
+    "46?",
+    "47?",
+    "48?",
+    "49?",
+    "50?",
+    "51?",
+    "52?",
+    "53?",
+    "54?",
+    "55?",
+];
+
 /// One row in the hiscores CSV response.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 struct HiscoreItem {
     // These are isize instead of usize because Jagex uses -1 for "missing"
     /// Player's rank in the category.
     rank: isize,
-    /// Skill level, or score for non-skill items.
-    level: isize,
+    /// For skills, the level. For everything else, the completion #.
+    score: isize,
     /// Total experience points. Only present for skills.
     #[serde(default)]
     xp: Option<isize>,
@@ -39,6 +100,18 @@ pub struct HiscoreSkill {
     pub xp: usize,
 }
 
+/// A minigame/boss/other stat tracked on the hiscores. This captures everything
+/// other than skills.
+#[derive(Clone, Debug)]
+pub struct HiscoreMinigame {
+    /// The minigame/boss name
+    pub name: &'static str,
+    /// The player's rank in this minigame
+    pub rank: usize,
+    /// The minigame score/completion count/kill count
+    pub score: usize,
+}
+
 /// Hiscore results for a player.
 #[derive(Clone, Debug)]
 pub struct HiscorePlayer {
@@ -46,6 +119,7 @@ pub struct HiscorePlayer {
     username: String,
     /// Data on all skills for the player, keyed by skill name
     skills: HashMap<Skill, HiscoreSkill>,
+    minigames: HashMap<&'static str, HiscoreMinigame>,
 }
 
 impl HiscorePlayer {
@@ -62,15 +136,16 @@ impl HiscorePlayer {
             .has_headers(false)
             .flexible(true)
             .from_reader(body.as_bytes());
-        let items = rdr
+        let mut items = rdr
             .deserialize()
             // Iterator magic to convert Vec<Result> -> Result<Vec>
             // If any item fails, this whole thing will fail
-            .collect::<Result<Vec<HiscoreItem>, csv::Error>>()?;
+            .collect::<Result<Vec<HiscoreItem>, csv::Error>>()?
+            .into_iter();
 
         let skills: HashMap<Skill, HiscoreSkill> = SKILLS
             .iter()
-            .zip(items)
+            .zip(&mut items)
             .map(|(&skill, item)| {
                 (
                     skill,
@@ -78,14 +153,34 @@ impl HiscorePlayer {
                         skill,
                         // These values should ALWAYS be >0 for skills
                         rank: item.rank.try_into().unwrap(),
-                        level: item.level.try_into().unwrap(),
+                        level: item.score.try_into().unwrap(),
                         xp: item.xp.unwrap().try_into().unwrap(),
                     },
                 )
             })
             .collect();
 
-        Ok(Self { username, skills })
+        let minigames: HashMap<&'static str, HiscoreMinigame> = MINIGAMES
+            .iter()
+            .zip(&mut items)
+            .filter_map(|(&name, item)| {
+                // Convert the rank+score from isize to usize. If it fails, that
+                // means it's a placeholder value, so we don't want to include
+                // this minigame
+                match (item.rank.try_into(), item.score.try_into()) {
+                    (Ok(rank), Ok(score)) => {
+                        Some((name, HiscoreMinigame { name, rank, score }))
+                    }
+                    _ => None,
+                }
+            })
+            .collect();
+
+        Ok(Self {
+            username,
+            skills,
+            minigames,
+        })
     }
 
     pub fn skill(&self, skill: Skill) -> &HiscoreSkill {
@@ -99,6 +194,16 @@ impl HiscorePlayer {
         SKILLS
             .iter()
             .map(|skill| self.skills.get(skill).unwrap())
+            .collect()
+    }
+
+    /// Get a list of minigame scores for the player. Any minigame for which
+    /// the player has no score will not be included here.
+    pub fn minigames(&self) -> Vec<&HiscoreMinigame> {
+        MINIGAMES
+            .iter()
+            // Any minigame that the user has no entry for will be missing here
+            .filter_map(|name| self.minigames.get(name))
             .collect()
     }
 }

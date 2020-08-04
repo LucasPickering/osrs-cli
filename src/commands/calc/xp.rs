@@ -152,7 +152,7 @@ impl Command for CalcXpCommand {
         let dest_xp = self.get_dest_xp(&options.dest)?;
         println!(
             "XP required: {}",
-            // TODO show negative numbers here
+            // TODO make this show negative numbers
             context.fmt_num(&dest_xp.wrapping_sub(source_xp))
         );
         Ok(())
