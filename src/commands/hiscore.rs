@@ -1,5 +1,6 @@
 use crate::{
     commands::Command,
+    error::OsrsResult,
     utils::{context::CommandContext, hiscore::HiscorePlayer},
 };
 use prettytable::{cell, row, Table};
@@ -22,14 +23,13 @@ impl Command for HiscoreCommand {
         &self,
         context: &CommandContext,
         options: &Self::Options,
-    ) -> anyhow::Result<()> {
+    ) -> OsrsResult<()> {
         let player = HiscorePlayer::load(
             context.http_client(),
             options.username.join(" "),
         )?;
 
-        // TODO move this code elsewhere. might be worth just writing our own
-        // minimal table formatter and getting rid of prettytable
+        // Print a pretty table
         let mut table = Table::new();
         table.set_format(
             *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,

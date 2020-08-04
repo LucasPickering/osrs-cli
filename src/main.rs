@@ -5,12 +5,14 @@ use crate::{
         CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
         HiscoreOptions,
     },
+    error::OsrsResult,
     utils::context::CommandContext,
 };
 use std::process;
 use structopt::StructOpt;
 
 mod commands;
+mod error;
 mod utils;
 
 #[derive(Debug, StructOpt)]
@@ -27,7 +29,7 @@ struct Options {
     cmd: CommandType,
 }
 
-fn run(opt: Options) -> anyhow::Result<()> {
+fn run(opt: Options) -> OsrsResult<()> {
     let context = CommandContext::new();
     match opt.cmd {
         CommandType::Hiscore(opts) => HiscoreCommand.execute(&context, &opts),

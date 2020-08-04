@@ -1,6 +1,9 @@
 //! Utilities for fetching player data from the OSRS hiscores.
 
-use crate::utils::skill::{Skill, SKILLS};
+use crate::{
+    error::OsrsResult,
+    utils::skill::{Skill, SKILLS},
+};
 use csv::ReaderBuilder;
 use reqwest::blocking::Client;
 use serde::Deserialize;
@@ -47,10 +50,7 @@ pub struct HiscorePlayer {
 
 impl HiscorePlayer {
     /// Load a player's data from the hiscore.
-    pub fn load(
-        http_client: &Client,
-        username: String,
-    ) -> anyhow::Result<Self> {
+    pub fn load(http_client: &Client, username: String) -> OsrsResult<Self> {
         // Fetch data from the API
         let body = http_client
             .get(HISCORE_URL)

@@ -1,5 +1,6 @@
 use crate::{
     commands::Command,
+    error::{OsrsError, OsrsResult},
     utils::{context::CommandContext, hiscore::HiscorePlayer, skill::Skill},
 };
 use structopt::StructOpt;
@@ -28,8 +29,12 @@ const LEVEL_TO_XP: &[usize] = &[
 
 /// Convert the given level to an XP total. Returns an error if the given level
 /// is outside the supported range.
-fn level_to_xp(level: usize) -> anyhow::Result<usize> {
-    Ok(LEVEL_TO_XP[level - 1]) // TODO make safe
+fn level_to_xp(level: usize) -> OsrsResult<usize> {
+    if 1 <= level && level <= LEVEL_TO_XP.len() {
+        Ok(LEVEL_TO_XP[level - 1])
+    } else {
+        Err(OsrsError::InvalidLevel(level))
+    }
 }
 
 /// Options that define the starting xp value. Exactly one of these should be
@@ -72,7 +77,7 @@ impl CalcXpCommand {
         &self,
         context: &CommandContext,
         options: &SourceOptions,
-    ) -> anyhow::Result<usize> {
+    ) -> OsrsResult<usize> {
         match options {
             // Use a given xp value
             SourceOptions {
@@ -105,11 +110,15 @@ impl CalcXpCommand {
             }
 
             // Anything else is invalid input, freak out!
-            _ => todo!(),
+            _ => Err(OsrsError::ArgsError(
+                "Must specify exactly one of \
+                    --from-xp, --from-lvl, or (--player and --skill)"
+                    .into(),
+            )),
         }
     }
 
-    fn get_dest_xp(&self, options: &DestOptions) -> anyhow::Result<usize> {
+    fn get_dest_xp(&self, options: &DestOptions) -> OsrsResult<usize> {
         match options {
             // Use a given xp value
             DestOptions {
@@ -124,7 +133,9 @@ impl CalcXpCommand {
             } => level_to_xp(*dest_level),
 
             // Anything else is invalid input, freak out!
-            _ => todo!(),
+            _ => Err(OsrsError::ArgsError(
+                "Must specify exactly one of --to-xp or --to-lvl".into(),
+            )),
         }
     }
 }
@@ -136,7 +147,7 @@ impl Command for CalcXpCommand {
         &self,
         context: &CommandContext,
         options: &Self::Options,
-    ) -> anyhow::Result<()> {
+    ) -> OsrsResult<()> {
         let source_xp = self.get_source_xp(context, &options.source)?;
         let dest_xp = self.get_dest_xp(&options.dest)?;
         println!(

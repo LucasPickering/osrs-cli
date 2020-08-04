@@ -1,4 +1,5 @@
-use std::{fmt::Display, num::ParseIntError, str::FromStr};
+use crate::error::OsrsError;
+use std::{fmt::Display, str::FromStr};
 
 /// A macro to reduce copy-pasta for defining the list of all skills
 macro_rules! skills {
@@ -58,7 +59,7 @@ skills! {
 }
 
 impl FromStr for Skill {
-    type Err = ParseIntError; // TODO
+    type Err = OsrsError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lower = s.to_lowercase();
@@ -69,7 +70,8 @@ impl FromStr for Skill {
                 return Ok(*skill);
             }
         }
-        todo!()
+
+        Err(OsrsError::UnknownSkill(s.to_string()))
     }
 }
 

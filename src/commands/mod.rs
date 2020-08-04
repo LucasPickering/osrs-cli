@@ -1,7 +1,7 @@
 mod calc;
 mod hiscore;
 
-use crate::utils::context::CommandContext;
+use crate::{error::OsrsResult, utils::context::CommandContext};
 pub use calc::*;
 pub use hiscore::*;
 use structopt::StructOpt;
@@ -17,5 +17,5 @@ pub trait Command {
         &self,
         context: &CommandContext,
         options: &Self::Options,
-    ) -> anyhow::Result<()>;
+    ) -> OsrsResult<()>;
 }
