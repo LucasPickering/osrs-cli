@@ -1,7 +1,9 @@
 use structopt::StructOpt;
 
+mod calc;
 mod hiscore;
 
+pub use calc::*;
 pub use hiscore::*;
 
 /// One subcommand for the CLI. Each subcommand has its own CLI arg structure

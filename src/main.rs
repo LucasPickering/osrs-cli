@@ -1,6 +1,9 @@
 #![deny(clippy::all, unused)]
 
-use crate::commands::{Command, HiscoreCommand, HiscoreOptions};
+use crate::commands::{
+    CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
+    HiscoreOptions,
+};
 use std::process;
 use structopt::StructOpt;
 
@@ -10,10 +13,12 @@ mod utils;
 #[derive(Debug, StructOpt)]
 enum CommandType {
     Hiscore(HiscoreOptions),
+    Calc(CalcOptions),
 }
 
+/// Oldschool RuneScape CLI.
+/// Bugs/suggestions: https://github.com/LucasPickering/osrs-cli
 #[derive(Debug, StructOpt)]
-#[structopt(name = "osrs")]
 struct Options {
     #[structopt(subcommand)]
     cmd: CommandType,
@@ -22,6 +27,9 @@ struct Options {
 fn run(opt: Options) -> anyhow::Result<()> {
     match opt.cmd {
         CommandType::Hiscore(opts) => HiscoreCommand.execute(&opts),
+        CommandType::Calc(CalcOptions {
+            cmd: CalcCommandType::Xp(opts),
+        }) => CalcXpCommand.execute(&opts),
     }
 }
 

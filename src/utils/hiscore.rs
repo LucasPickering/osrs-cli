@@ -113,6 +113,10 @@ impl HiscorePlayer {
         Ok(Self { username, skills })
     }
 
+    pub fn skill(&self, skill: &str) -> &HiscoreSkill {
+        self.skills.get(skill).unwrap()
+    }
+
     /// Get a list of all skills for this player.
     pub fn skills(&self) -> Vec<&HiscoreSkill> {
         SKILLS
