@@ -1,8 +1,11 @@
 #![deny(clippy::all, unused)]
 
-use crate::commands::{
-    CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
-    HiscoreOptions,
+use crate::{
+    commands::{
+        CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
+        HiscoreOptions,
+    },
+    utils::context::CommandContext,
 };
 use std::process;
 use structopt::StructOpt;
@@ -25,11 +28,12 @@ struct Options {
 }
 
 fn run(opt: Options) -> anyhow::Result<()> {
+    let context = CommandContext::new();
     match opt.cmd {
-        CommandType::Hiscore(opts) => HiscoreCommand.execute(&opts),
+        CommandType::Hiscore(opts) => HiscoreCommand.execute(&context, &opts),
         CommandType::Calc(CalcOptions {
             cmd: CalcCommandType::Xp(opts),
-        }) => CalcXpCommand.execute(&opts),
+        }) => CalcXpCommand.execute(&context, &opts),
     }
 }
 

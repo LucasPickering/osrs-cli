@@ -1,6 +1,7 @@
 //! Utilities for fetching player data from the OSRS hiscores.
 
 use csv::ReaderBuilder;
+use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::{collections::HashMap, convert::TryInto};
 
@@ -74,10 +75,12 @@ pub struct HiscorePlayer {
 
 impl HiscorePlayer {
     /// Load a player's data from the hiscore.
-    pub fn load(username: String) -> anyhow::Result<Self> {
+    pub fn load(
+        http_client: &Client,
+        username: String,
+    ) -> anyhow::Result<Self> {
         // Fetch data from the API
-        let client = reqwest::blocking::Client::new();
-        let body = client
+        let body = http_client
             .get(HISCORE_URL)
             .query(&[("player", &username)])
             .send()?

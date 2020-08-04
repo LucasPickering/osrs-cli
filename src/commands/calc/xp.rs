@@ -1,5 +1,7 @@
-use crate::{commands::Command, utils::hiscore::HiscorePlayer};
-use num_format::{SystemLocale, ToFormattedString};
+use crate::{
+    commands::Command,
+    utils::{context::CommandContext, hiscore::HiscorePlayer},
+};
 use structopt::StructOpt;
 
 /// A list of the XP total required for each level. The index is (level-1), so
@@ -66,7 +68,11 @@ pub struct CalcXpOptions {
 pub struct CalcXpCommand;
 
 impl CalcXpCommand {
-    fn get_source_xp(&self, options: &SourceOptions) -> anyhow::Result<usize> {
+    fn get_source_xp(
+        &self,
+        context: &CommandContext,
+        options: &SourceOptions,
+    ) -> anyhow::Result<usize> {
         match options {
             // Use a given xp value
             SourceOptions {
@@ -91,7 +97,10 @@ impl CalcXpCommand {
                 player,
                 skill: Some(skill),
             } if !player.is_empty() => {
-                let player = HiscorePlayer::load(player.join(" "))?;
+                let player = HiscorePlayer::load(
+                    context.http_client(),
+                    player.join(" "),
+                )?;
                 Ok(player.skill(&skill).xp)
             }
 
@@ -123,14 +132,17 @@ impl CalcXpCommand {
 impl Command for CalcXpCommand {
     type Options = CalcXpOptions;
 
-    fn execute(&self, options: &Self::Options) -> anyhow::Result<()> {
-        let source_xp = self.get_source_xp(&options.source)?;
+    fn execute(
+        &self,
+        context: &CommandContext,
+        options: &Self::Options,
+    ) -> anyhow::Result<()> {
+        let source_xp = self.get_source_xp(context, &options.source)?;
         let dest_xp = self.get_dest_xp(&options.dest)?;
-        let locale = SystemLocale::default().unwrap();
         println!(
             "XP required: {}",
             // TODO show negative numbers here
-            dest_xp.wrapping_sub(source_xp).to_formatted_string(&locale)
+            context.fmt_num(&dest_xp.wrapping_sub(source_xp))
         );
         Ok(())
     }

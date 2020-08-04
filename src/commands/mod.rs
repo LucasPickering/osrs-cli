@@ -1,10 +1,10 @@
-use structopt::StructOpt;
-
 mod calc;
 mod hiscore;
 
+use crate::utils::context::CommandContext;
 pub use calc::*;
 pub use hiscore::*;
+use structopt::StructOpt;
 
 /// One subcommand for the CLI. Each subcommand has its own CLI arg structure
 /// and functionality.
@@ -13,5 +13,9 @@ pub trait Command {
     type Options: StructOpt;
 
     /// Run the command with the given input options.
-    fn execute(&self, options: &Self::Options) -> anyhow::Result<()>;
+    fn execute(
+        &self,
+        context: &CommandContext,
+        options: &Self::Options,
+    ) -> anyhow::Result<()>;
 }

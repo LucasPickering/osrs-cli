@@ -1,5 +1,7 @@
-use crate::{commands::Command, utils::hiscore::HiscorePlayer};
-use num_format::{SystemLocale, ToFormattedString};
+use crate::{
+    commands::Command,
+    utils::{context::CommandContext, hiscore::HiscorePlayer},
+};
 use prettytable::{cell, row, Table};
 use structopt::StructOpt;
 
@@ -16,12 +18,18 @@ pub struct HiscoreCommand;
 impl Command for HiscoreCommand {
     type Options = HiscoreOptions;
 
-    fn execute(&self, options: &Self::Options) -> anyhow::Result<()> {
-        let player = HiscorePlayer::load(options.username.join(" "))?;
+    fn execute(
+        &self,
+        context: &CommandContext,
+        options: &Self::Options,
+    ) -> anyhow::Result<()> {
+        let player = HiscorePlayer::load(
+            context.http_client(),
+            options.username.join(" "),
+        )?;
 
         // TODO move this code elsewhere. might be worth just writing our own
         // minimal table formatter and getting rid of prettytable
-        let locale = SystemLocale::default().unwrap();
         let mut table = Table::new();
         table.set_format(
             *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
@@ -30,9 +38,9 @@ impl Command for HiscoreCommand {
         for skill in player.skills() {
             table.add_row(row![
                 skill.name,
-                r->skill.rank.to_formatted_string(&locale),
-                r->skill.level.to_formatted_string(&locale),
-                r->skill.xp.to_formatted_string(&locale),
+                r->context.fmt_num(&skill.rank),
+                r->context.fmt_num(&skill.level),
+                r->context.fmt_num(&skill.xp),
             ]);
         }
         table.printstd();
