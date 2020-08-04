@@ -3,7 +3,7 @@
 use crate::{
     commands::{
         CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
-        HiscoreOptions, PingCommand, PingOptions,
+        HiscoreOptions, PingCommand, PingOptions, WikiCommand, WikiOptions,
     },
     error::OsrsResult,
     utils::context::CommandContext,
@@ -20,6 +20,7 @@ enum CommandType {
     Calc(CalcOptions),
     Hiscore(HiscoreOptions),
     Ping(PingOptions),
+    Wiki(WikiOptions),
 }
 
 /// Oldschool RuneScape CLI.
@@ -38,6 +39,7 @@ fn run(opt: Options) -> OsrsResult<()> {
         }) => CalcXpCommand.execute(&context, &opts),
         CommandType::Hiscore(opts) => HiscoreCommand.execute(&context, &opts),
         CommandType::Ping(opts) => PingCommand.execute(&context, &opts),
+        CommandType::Wiki(opts) => WikiCommand.execute(&context, &opts),
     }
 }
 
