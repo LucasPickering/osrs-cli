@@ -12,6 +12,8 @@ pub enum OsrsError {
 
     // wrapped errors
     #[error("{0}")]
+    Io(#[from] std::io::Error),
+    #[error("{0}")]
     Csv(#[from] csv::Error),
     #[error("{0}")]
     Reqwest(#[from] reqwest::Error),

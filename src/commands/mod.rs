@@ -1,9 +1,11 @@
 mod calc;
 mod hiscore;
+mod ping;
 
 use crate::{error::OsrsResult, utils::context::CommandContext};
 pub use calc::*;
 pub use hiscore::*;
+pub use ping::*;
 use structopt::StructOpt;
 
 /// One subcommand for the CLI. Each subcommand has its own CLI arg structure

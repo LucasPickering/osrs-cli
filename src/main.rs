@@ -3,7 +3,7 @@
 use crate::{
     commands::{
         CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
-        HiscoreOptions,
+        HiscoreOptions, PingCommand, PingOptions,
     },
     error::OsrsResult,
     utils::context::CommandContext,
@@ -17,8 +17,9 @@ mod utils;
 
 #[derive(Debug, StructOpt)]
 enum CommandType {
-    Hiscore(HiscoreOptions),
     Calc(CalcOptions),
+    Hiscore(HiscoreOptions),
+    Ping(PingOptions),
 }
 
 /// Oldschool RuneScape CLI.
@@ -32,10 +33,11 @@ struct Options {
 fn run(opt: Options) -> OsrsResult<()> {
     let context = CommandContext::new();
     match opt.cmd {
-        CommandType::Hiscore(opts) => HiscoreCommand.execute(&context, &opts),
         CommandType::Calc(CalcOptions {
             cmd: CalcCommandType::Xp(opts),
         }) => CalcXpCommand.execute(&context, &opts),
+        CommandType::Hiscore(opts) => HiscoreCommand.execute(&context, &opts),
+        CommandType::Ping(opts) => PingCommand.execute(&context, &opts),
     }
 }
 
