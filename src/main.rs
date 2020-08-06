@@ -8,16 +8,19 @@ use crate::{
     error::OsrsResult,
     utils::context::CommandContext,
 };
+use commands::ConfigCommand;
 use std::process;
 use structopt::StructOpt;
 
 mod commands;
+mod config;
 mod error;
 mod utils;
 
 #[derive(Debug, StructOpt)]
 enum OsrsCommandType {
     Calc(CalcCommand),
+    Config(ConfigCommand),
     Hiscore(HiscoreCommand),
     Ping(PingCommand),
     Wiki(WikiCommand),
@@ -27,6 +30,7 @@ impl CommandType for OsrsCommandType {
     fn command(&self) -> &dyn Command {
         match &self {
             Self::Calc(cmd) => cmd,
+            Self::Config(cmd) => cmd,
             Self::Hiscore(cmd) => cmd,
             Self::Ping(cmd) => cmd,
             Self::Wiki(cmd) => cmd,
@@ -48,10 +52,14 @@ impl Command for OsrsOptions {
     }
 }
 
-fn main() {
-    let context = CommandContext::new();
+fn run() -> OsrsResult<()> {
+    let context = CommandContext::load()?;
     let options = OsrsOptions::from_args();
-    let exit_code = match options.execute(&context) {
+    options.execute(&context)
+}
+
+fn main() {
+    let exit_code = match run() {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);

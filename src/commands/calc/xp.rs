@@ -98,10 +98,10 @@ impl CalcXpCommand {
                 source_level: None,
                 player,
                 skill: Some(skill),
-            } if !player.is_empty() => {
+            } => {
                 let player = HiscorePlayer::load(
                     context.http_client(),
-                    player.join(" "),
+                    context.config().get_username(&player)?,
                 )?;
                 Ok(player.skill(*skill).xp)
             }

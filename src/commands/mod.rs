@@ -1,8 +1,10 @@
 mod calc;
+mod config;
 mod hiscore;
 mod ping;
 mod wiki;
 
+pub use self::config::*;
 use crate::{error::OsrsResult, utils::context::CommandContext};
 pub use calc::*;
 pub use hiscore::*;
