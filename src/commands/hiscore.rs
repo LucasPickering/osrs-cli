@@ -10,16 +10,14 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 pub struct HiscoreCommand {
     /// The name of the player that you want to look up
-    #[structopt(required = true)]
     username: Vec<String>,
 }
 
 impl Command for HiscoreCommand {
     fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
-        let player = HiscorePlayer::load(
-            context.http_client(),
-            self.username.join(" "),
-        )?;
+        let username =
+            context.config().get_username(self.username.as_slice())?;
+        let player = HiscorePlayer::load(context.http_client(), username)?;
 
         // Print a table for skills
         println!("Skills");

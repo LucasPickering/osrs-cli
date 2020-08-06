@@ -1,21 +1,29 @@
+use crate::{config::OsrsConfig, error::OsrsResult};
 use num_format::{SystemLocale, ToFormattedString};
 use reqwest::blocking::Client;
 
 /// A helper type to encapsulate values that we are likely to use multiple
 /// time while executing a command. Centralizes that logic to clean shit up.
 pub struct CommandContext {
+    config: OsrsConfig,
     locale: SystemLocale,
     http_client: Client,
 }
 
 impl CommandContext {
-    pub fn new() -> CommandContext {
-        let locale = SystemLocale::default().unwrap();
+    pub fn load() -> OsrsResult<CommandContext> {
+        let config = OsrsConfig::load()?;
+        let locale = SystemLocale::default()?;
         let http_client = reqwest::blocking::Client::new();
-        CommandContext {
+        Ok(CommandContext {
+            config,
             locale,
             http_client,
-        }
+        })
+    }
+
+    pub fn config(&self) -> &OsrsConfig {
+        &self.config
     }
 
     pub fn http_client(&self) -> &Client {
