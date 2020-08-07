@@ -63,18 +63,15 @@ struct DestOptions {
 
 /// Calculate the xp needed to get to a target.
 #[derive(Debug, StructOpt)]
-pub struct CalcXpOptions {
+pub struct CalcXpCommand {
     #[structopt(flatten)]
     source: SourceOptions,
     #[structopt(flatten)]
     dest: DestOptions,
 }
 
-pub struct CalcXpCommand;
-
 impl CalcXpCommand {
     fn get_source_xp(
-        &self,
         context: &CommandContext,
         options: &SourceOptions,
     ) -> OsrsResult<usize> {
@@ -118,7 +115,7 @@ impl CalcXpCommand {
         }
     }
 
-    fn get_dest_xp(&self, options: &DestOptions) -> OsrsResult<usize> {
+    fn get_dest_xp(options: &DestOptions) -> OsrsResult<usize> {
         match options {
             // Use a given xp value
             DestOptions {
@@ -141,15 +138,9 @@ impl CalcXpCommand {
 }
 
 impl Command for CalcXpCommand {
-    type Options = CalcXpOptions;
-
-    fn execute(
-        &self,
-        context: &CommandContext,
-        options: &Self::Options,
-    ) -> OsrsResult<()> {
-        let source_xp = self.get_source_xp(context, &options.source)?;
-        let dest_xp = self.get_dest_xp(&options.dest)?;
+    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+        let source_xp = Self::get_source_xp(context, &self.source)?;
+        let dest_xp = Self::get_dest_xp(&self.dest)?;
         println!(
             "XP required: {}",
             // TODO make this show negative numbers

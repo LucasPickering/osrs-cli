@@ -2,8 +2,8 @@
 
 use crate::{
     commands::{
-        CalcCommandType, CalcOptions, CalcXpCommand, Command, HiscoreCommand,
-        HiscoreOptions, PingCommand, PingOptions, WikiCommand, WikiOptions,
+        CalcCommand, Command, CommandType, HiscoreCommand, PingCommand,
+        WikiCommand,
     },
     error::OsrsResult,
     utils::context::CommandContext,
@@ -16,36 +16,42 @@ mod error;
 mod utils;
 
 #[derive(Debug, StructOpt)]
-enum CommandType {
-    Calc(CalcOptions),
-    Hiscore(HiscoreOptions),
-    Ping(PingOptions),
-    Wiki(WikiOptions),
+enum OsrsCommandType {
+    Calc(CalcCommand),
+    Hiscore(HiscoreCommand),
+    Ping(PingCommand),
+    Wiki(WikiCommand),
+}
+
+impl CommandType for OsrsCommandType {
+    fn command(&self) -> &dyn Command {
+        match &self {
+            Self::Calc(cmd) => cmd,
+            Self::Hiscore(cmd) => cmd,
+            Self::Ping(cmd) => cmd,
+            Self::Wiki(cmd) => cmd,
+        }
+    }
 }
 
 /// Oldschool RuneScape CLI.
 /// Bugs/suggestions: https://github.com/LucasPickering/osrs-cli
 #[derive(Debug, StructOpt)]
-struct Options {
+struct OsrsOptions {
     #[structopt(subcommand)]
-    cmd: CommandType,
+    cmd: OsrsCommandType,
 }
 
-fn run(opt: Options) -> OsrsResult<()> {
-    let context = CommandContext::new();
-    match opt.cmd {
-        CommandType::Calc(CalcOptions {
-            cmd: CalcCommandType::Xp(opts),
-        }) => CalcXpCommand.execute(&context, &opts),
-        CommandType::Hiscore(opts) => HiscoreCommand.execute(&context, &opts),
-        CommandType::Ping(opts) => PingCommand.execute(&context, &opts),
-        CommandType::Wiki(opts) => WikiCommand.execute(&context, &opts),
+impl Command for OsrsOptions {
+    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+        self.cmd.command().execute(context)
     }
 }
 
 fn main() {
-    let options = Options::from_args();
-    let exit_code = match run(options) {
+    let context = CommandContext::new();
+    let options = OsrsOptions::from_args();
+    let exit_code = match options.execute(&context) {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);

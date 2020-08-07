@@ -8,25 +8,17 @@ use structopt::StructOpt;
 
 /// Load and print player data from the OSRS hiscores.
 #[derive(Debug, StructOpt)]
-pub struct HiscoreOptions {
+pub struct HiscoreCommand {
     /// The name of the player that you want to look up
     #[structopt(required = true)]
     username: Vec<String>,
 }
 
-pub struct HiscoreCommand;
-
 impl Command for HiscoreCommand {
-    type Options = HiscoreOptions;
-
-    fn execute(
-        &self,
-        context: &CommandContext,
-        options: &Self::Options,
-    ) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
         let player = HiscorePlayer::load(
             context.http_client(),
-            options.username.join(" "),
+            self.username.join(" "),
         )?;
 
         // Print a table for skills

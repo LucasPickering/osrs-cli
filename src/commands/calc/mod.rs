@@ -3,17 +3,35 @@
 
 mod xp;
 
+use crate::{
+    commands::{calc::xp::CalcXpCommand, Command, CommandType},
+    error::OsrsResult,
+    utils::context::CommandContext,
+};
 use structopt::StructOpt;
-pub use xp::*;
 
 #[derive(Debug, StructOpt)]
 pub enum CalcCommandType {
-    Xp(CalcXpOptions),
+    Xp(CalcXpCommand),
+}
+
+impl CommandType for CalcCommandType {
+    fn command(&self) -> &dyn Command {
+        match &self {
+            Self::Xp(cmd) => cmd,
+        }
+    }
 }
 
 /// Calculators!
 #[derive(Debug, StructOpt)]
-pub struct CalcOptions {
+pub struct CalcCommand {
     #[structopt(subcommand)]
     pub cmd: CalcCommandType,
+}
+
+impl Command for CalcCommand {
+    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+        self.cmd.command().execute(context)
+    }
 }

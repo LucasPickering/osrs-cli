@@ -8,7 +8,7 @@ use structopt::StructOpt;
 
 /// Run a network ping against a world
 #[derive(Debug, StructOpt)]
-pub struct PingOptions {
+pub struct PingCommand {
     /// The number of the world you want to ping
     world: usize,
     /// The number of pings to run (omit to run forever)
@@ -16,29 +16,20 @@ pub struct PingOptions {
     count: Option<usize>,
 }
 
-pub struct PingCommand;
-
 impl Command for PingCommand {
-    type Options = PingOptions;
-
-    fn execute(
-        &self,
-        _context: &CommandContext,
-        options: &Self::Options,
-    ) -> OsrsResult<()> {
-        if options.world < 301 {
+    fn execute(&self, _context: &CommandContext) -> OsrsResult<()> {
+        if self.world < 301 {
             return Err(OsrsError::ArgsError(
                 "Invalid world: Must be at least 301".into(),
             ));
         }
 
-        let hostname =
-            format!("oldschool{}.runescape.com", options.world - 300);
+        let hostname = format!("oldschool{}.runescape.com", self.world - 300);
 
         // Arg format depends on system
         let result = if cfg!(target_os = "windows") {
             let mut cmd = process::Command::new("ping");
-            match options.count {
+            match self.count {
                 // On Windows, "-n -1" means run forever
                 None => {
                     cmd.args(&["-n", "-1"]);
@@ -50,7 +41,7 @@ impl Command for PingCommand {
             cmd.arg(&hostname).spawn()
         } else {
             let mut cmd = process::Command::new("ping");
-            match options.count {
+            match self.count {
                 // On Linux, it runs forever if you just omit "-c"
                 None => {}
                 Some(count) => {
