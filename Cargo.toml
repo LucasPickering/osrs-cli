@@ -1,23 +1,36 @@
 [package]
-name = "osrs-cli"
-version = "0.1.0"
 authors = ["Lucas Pickering <lucas@lucaspickering.me>"]
 description = "Command line utility program for Oldschool RuneScape"
-license = "MIT"
 edition = "2018"
+license = "MIT"
+name = "osrs-cli"
+version = "0.1.0"
+[[bin]]
+name = "osrs"
+path = "src/main.rs"
 
 [dependencies]
-config = { version = "^0.10.1", default-features = false, features = ["json"] }
+colored = "^2.0.0"
 csv = "^1.1.3"
-num-format = { version = "^0.4.0", features = ["with-system-locale"] }
 open = "^1.4.0"
 prettytable-rs = "^0.8.0"
-reqwest = { version = "^0.10.7", features = ["blocking"] }
-serde = { version = "^1.0.114", features = ["derive"] }
 serde_json = "^1.0.57"
 structopt = "^0.3.15"
 thiserror = "^1.0.20"
 
-[[bin]]
-name = "osrs"
-path = "src/main.rs"
+[dependencies.config]
+default-features = false
+features = ["json"]
+version = "^0.10.1"
+
+[dependencies.num-format]
+features = ["with-system-locale"]
+version = "^0.4.0"
+
+[dependencies.reqwest]
+features = ["blocking"]
+version = "^0.10.7"
+
+[dependencies.serde]
+features = ["derive"]
+version = "^1.0.114"

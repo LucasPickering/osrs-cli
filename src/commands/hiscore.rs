@@ -9,7 +9,8 @@ use structopt::StructOpt;
 /// Load and print player data from the OSRS hiscores.
 #[derive(Debug, StructOpt)]
 pub struct HiscoreCommand {
-    /// The name of the player that you want to look up
+    /// The name of the player that you want to look up. If not given, will
+    /// use the default player in the config.
     username: Vec<String>,
 }
 

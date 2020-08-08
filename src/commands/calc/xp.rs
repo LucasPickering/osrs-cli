@@ -3,6 +3,7 @@ use crate::{
     error::{OsrsError, OsrsResult},
     utils::{context::CommandContext, hiscore::HiscorePlayer, skill::Skill},
 };
+use colored::*;
 use structopt::StructOpt;
 
 /// A list of the XP total required for each level. The index is (level-1), so
@@ -37,31 +38,51 @@ fn level_to_xp(level: usize) -> OsrsResult<usize> {
     }
 }
 
-/// Options that define the starting xp value. Exactly one of these should be
-/// defined!
+/// Convert the XP total to a level. Returns an error if the given XP
+/// is outside the supported range.
+fn xp_to_level(xp: usize) -> usize {
+    let index = match LEVEL_TO_XP.binary_search(&xp) {
+        Ok(idx) => idx,
+        Err(idx) => idx - 1,
+    };
+    index + 1
+}
+
+// Options that define the starting xp value. Exactly one of these should be
+// defined! Warning: DO NOT make this a doc comment! It will override the
+// help on the options struct.
 #[derive(Debug, StructOpt)]
 struct SourceOptions {
+    /// The XP amount to start from.
     #[structopt(long = "--from-xp")]
     source_xp: Option<usize>,
+    /// The level to start from.
     #[structopt(long = "--from-lvl")]
     source_level: Option<usize>,
+    /// The player to pull a starting XP amount from. MUST be used in tandem
+    /// with --skill. If not given, will use the default player in the config.
     #[structopt(short, long)]
     player: Vec<String>,
+    /// The skill to pull a starting XP amount from. MUST be used in tandem
+    /// with --player (unless a default player is defined in the config).
     #[structopt(short, long)]
     skill: Option<Skill>,
 }
 
-/// Options that define the target xp value. Exactly one of these should
-/// be defined!
+// Options that define the target xp value. Exactly one of these should
+// be defined! Warning: DO NOT make this a doc comment! It will override the
+// help on the options struct.
 #[derive(Debug, StructOpt)]
 struct DestOptions {
+    /// The XP amount to calculate to.
     #[structopt(long = "--to-xp")]
     dest_xp: Option<usize>,
+    /// The level to calculate to.
     #[structopt(long = "--to-lvl")]
     dest_level: Option<usize>,
 }
 
-/// Calculate the xp needed to get to a target.
+/// Calculate the xp needed to get from a starting point to an ending point.
 #[derive(Debug, StructOpt)]
 pub struct CalcXpCommand {
     #[structopt(flatten)]
@@ -142,10 +163,53 @@ impl Command for CalcXpCommand {
         let source_xp = Self::get_source_xp(context, &self.source)?;
         let dest_xp = Self::get_dest_xp(&self.dest)?;
         println!(
-            "XP required: {}",
+            "{} XP (Level {}) => {} XP (Level {}) = {}",
+            context.fmt_num(&source_xp),
+            xp_to_level(source_xp),
+            context.fmt_num(&dest_xp),
+            xp_to_level(dest_xp),
             // TODO make this show negative numbers
-            context.fmt_num(&dest_xp.wrapping_sub(source_xp))
+            format!("{} XP", context.fmt_num(&dest_xp.wrapping_sub(source_xp)))
+                .blue()
+                .bold()
         );
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_level_to_xp() {
+        assert_eq!(
+            level_to_xp(0).unwrap_err().to_string(),
+            "Invalid level. Must be between 1 and 127, got: 0"
+        );
+        assert_eq!(level_to_xp(1).unwrap(), 0);
+        assert_eq!(level_to_xp(2).unwrap(), 83);
+        assert_eq!(level_to_xp(92).unwrap(), 6_517_253);
+        assert_eq!(level_to_xp(99).unwrap(), 13_034_431);
+        assert_eq!(level_to_xp(126).unwrap(), 188_884_740);
+        assert_eq!(level_to_xp(127).unwrap(), 208_545_572);
+        assert_eq!(
+            level_to_xp(128).unwrap_err().to_string(),
+            "Invalid level. Must be between 1 and 127, got: 128"
+        );
+    }
+
+    #[test]
+    fn test_xp_to_level() {
+        assert_eq!(xp_to_level(0), 1);
+        assert_eq!(xp_to_level(1), 1);
+        assert_eq!(xp_to_level(82), 1);
+        assert_eq!(xp_to_level(83), 2);
+        assert_eq!(xp_to_level(37223), 39);
+        assert_eq!(xp_to_level(37224), 40);
+        assert_eq!(xp_to_level(6_517_253), 92);
+        assert_eq!(xp_to_level(13_034_431), 99);
+        assert_eq!(xp_to_level(200_000_000), 126);
+        assert_eq!(xp_to_level(999_999_999), 127);
     }
 }

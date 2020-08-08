@@ -8,11 +8,12 @@ use config::Config;
 use std::fs::OpenOptions;
 use structopt::StructOpt;
 
-/// TODO
+/// Set a configuration value
 #[derive(Debug, StructOpt)]
 pub struct ConfigSetCommand {
-    /// The key for the config field to get
+    /// The key for the config field to set
     pub key: String,
+    /// The new value to use for the field
     pub value: String,
 }
 

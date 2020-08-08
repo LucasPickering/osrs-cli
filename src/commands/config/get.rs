@@ -3,7 +3,7 @@ use crate::{
 };
 use structopt::StructOpt;
 
-/// Get the current value of all config options.
+/// Get the current configuration values.
 #[derive(Debug, StructOpt)]
 pub struct ConfigGetCommand {}
 
