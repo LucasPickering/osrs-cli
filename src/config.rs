@@ -23,7 +23,11 @@ impl OsrsConfig {
         s.try_into().map_err(OsrsError::from)
     }
 
-    /// TODO
+    /// Convert a (possibly empty) list of username parts into a username. If
+    /// the array has at least one element, the elements will be appended
+    /// together with spaces between. If not, then we'll fall back to the
+    /// default player defined in the config. If that is not present either,
+    /// then return an arg error.
     pub fn get_username(&self, username: &[String]) -> OsrsResult<String> {
         match (username, &self.default_player) {
             // No arg provided, empty default - error

@@ -26,7 +26,7 @@ impl CommandType for ConfigCommandType {
     }
 }
 
-/// TODO
+/// Get and set configuration values.
 #[derive(Debug, StructOpt)]
 pub struct ConfigCommand {
     #[structopt(subcommand)]
