@@ -1,4 +1,5 @@
 use crate::error::OsrsError;
+use anyhow::Context;
 use config::{Config, File};
 use serde::{Deserialize, Serialize};
 
@@ -30,15 +31,16 @@ pub struct FarmingHerbsConfig {
     pub compost: Option<Compost>,
     /// Do you have magic secateurs equipped? (10% yield bonus)
     pub magic_secateurs: bool,
-    /// Do you have magic secateurs? (10% yield bonus)
+    /// Do you have a farming cape equipped? (5% yield bonus)
     pub farming_cape: bool,
     /// Do you have a bottomless bucket?
     pub bottomless_bucket: bool,
     /// Do you have an attas seed planted at the farming guild while
-    /// harvesting?
+    /// harvesting? (5% chance to save a life on all patches)
     pub attas_plant: bool,
 }
 
+/// Different types of compost that can be applied to a farming patch
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Compost {
     Normal,
@@ -46,13 +48,17 @@ pub enum Compost {
     Ultracompost,
 }
 
+/// An herb farming patch. Different patches can have different attributes
+/// based on the user's unlocks.
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct HerbPatch {
     pub name: String,
     /// Percentage yield bonus applied to this patch. Should NOT be used for
     /// global yield bonuses.
     pub yield_bonus_pct: u32,
+    /// Percentage XP bonus applied to this patch.
     pub xp_bonus_pct: u32,
+    /// Is this patch guaranteed to be disease-free?
     pub disease_free: bool,
 }
 
@@ -60,7 +66,7 @@ impl OsrsConfig {
     pub fn load() -> anyhow::Result<Self> {
         let mut s = Config::try_from(&OsrsConfig::default()).unwrap();
         s.merge(File::with_name(CONFIG_FILE_PATH).required(false))?;
-        Ok(s.try_into()?)
+        Ok(s.try_into().with_context(|| "Error loading config")?)
     }
 
     /// Convert a (possibly empty) list of username parts into a username. If

@@ -1,4 +1,5 @@
 #![deny(clippy::all, unused)]
+#![feature(backtrace)]
 
 use crate::{
     commands::{
@@ -8,7 +9,7 @@ use crate::{
     utils::context::CommandContext,
 };
 use commands::ConfigCommand;
-use std::process;
+use std::{backtrace::BacktraceStatus, process};
 use structopt::StructOpt;
 
 mod commands;
@@ -16,6 +17,7 @@ mod config;
 mod error;
 mod utils;
 
+/// All top-level CLI commands.
 #[derive(Debug, StructOpt)]
 enum OsrsCommandType {
     Calc(CalcCommand),
@@ -62,7 +64,10 @@ fn main() {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);
-            eprintln!("{}", err.backtrace());
+            let bt = err.backtrace();
+            if let BacktraceStatus::Captured = bt.status() {
+                eprintln!("{}", err.backtrace());
+            }
             1
         }
     };
