@@ -1,6 +1,5 @@
 use crate::{
     commands::Command,
-    error::OsrsResult,
     utils::{context::CommandContext, hiscore::HiscorePlayer},
 };
 use prettytable::{cell, row, Table};
@@ -15,7 +14,7 @@ pub struct HiscoreCommand {
 }
 
 impl Command for HiscoreCommand {
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         let username =
             context.config().get_username(self.username.as_slice())?;
         let player = HiscorePlayer::load(context.http_client(), username)?;

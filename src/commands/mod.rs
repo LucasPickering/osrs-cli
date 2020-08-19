@@ -5,7 +5,7 @@ mod ping;
 mod wiki;
 
 pub use self::config::*;
-use crate::{error::OsrsResult, utils::context::CommandContext};
+use crate::utils::context::CommandContext;
 pub use calc::*;
 pub use hiscore::*;
 pub use ping::*;
@@ -21,5 +21,5 @@ pub trait CommandType {
 /// so that it can collect its own CLI args.
 pub trait Command {
     /// Run the command with the given input options.
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()>;
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()>;
 }

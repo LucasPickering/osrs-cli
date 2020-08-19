@@ -1,7 +1,5 @@
 use crate::{
-    commands::Command,
-    error::{OsrsError, OsrsResult},
-    utils::context::CommandContext,
+    commands::Command, error::OsrsError, utils::context::CommandContext,
 };
 use std::process;
 use structopt::StructOpt;
@@ -17,11 +15,12 @@ pub struct PingCommand {
 }
 
 impl Command for PingCommand {
-    fn execute(&self, _context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
         if self.world < 301 {
             return Err(OsrsError::ArgsError(
                 "Invalid world: Must be at least 301".into(),
-            ));
+            )
+            .into());
         }
 
         let hostname = format!("oldschool{}.runescape.com", self.world - 300);

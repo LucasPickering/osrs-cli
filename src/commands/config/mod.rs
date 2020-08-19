@@ -3,7 +3,6 @@ use crate::{
         config::{get::ConfigGetCommand, set::ConfigSetCommand},
         Command, CommandType,
     },
-    error::OsrsResult,
     utils::context::CommandContext,
 };
 use structopt::StructOpt;
@@ -34,7 +33,7 @@ pub struct ConfigCommand {
 }
 
 impl Command for ConfigCommand {
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         self.cmd.command().execute(context)
     }
 }

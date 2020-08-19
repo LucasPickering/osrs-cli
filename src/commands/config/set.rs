@@ -1,7 +1,6 @@
 use crate::{
     commands::Command,
     config::{OsrsConfig, CONFIG_FILE_PATH},
-    error::OsrsResult,
     utils::context::CommandContext,
 };
 use config::Config;
@@ -18,7 +17,7 @@ pub struct ConfigSetCommand {
 }
 
 impl Command for ConfigSetCommand {
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         let current_cfg_value = context.config();
         let mut cfg = Config::try_from(current_cfg_value)?;
         cfg.set(&self.key, self.value.as_str())?;

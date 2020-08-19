@@ -5,7 +5,6 @@ mod xp;
 
 use crate::{
     commands::{calc::xp::CalcXpCommand, Command, CommandType},
-    error::OsrsResult,
     utils::context::CommandContext,
 };
 use structopt::StructOpt;
@@ -31,7 +30,7 @@ pub struct CalcCommand {
 }
 
 impl Command for CalcCommand {
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         self.cmd.command().execute(context)
     }
 }
