@@ -9,4 +9,6 @@ pub enum OsrsError {
     UnknownSkill(String),
     #[error("Invalid level. Must be between 1 and 127, got: {0}")]
     InvalidLevel(usize),
+    #[error("Missing configuration for field `{key}`. {message}")]
+    Unconfigured { key: String, message: String },
 }

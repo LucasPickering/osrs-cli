@@ -17,32 +17,20 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "^1.0.0"
 colored = "^2.0.0"
+config = {version = "^0.11.0", default-features = false, features = ["json"]}
 csv = "^1.1.3"
+derive_more = "^0.99.16"
 lazy_static = "^1.4.0"
+num-format = {version = "^0.4.0", features = ["with-system-locale"]}
 open = "^1.4.0"
 prettytable-rs = "^0.8.0"
 regex = "^1.3.9"
+serde = {version = "^1.0.114", features = ["derive"]}
 serde_json = "^1.0.57"
 structopt = "^0.3.15"
+strum = {version = "^0.21.0", features = ["derive"]}
 thiserror = "^1.0.0"
-
-[dependencies.config]
-default-features = false
-features = ["json"]
-version = "^0.11.0"
-
-[dependencies.num-format]
-features = ["with-system-locale"]
-version = "^0.4.0"
-
-[dependencies.serde]
-features = ["derive"]
-version = "^1.0.114"
-
-[dependencies.ureq]
-default-features = false
-features = ["tls"]
-version = "^2.0.1"
+ureq = {version = "^2.0.1", default-features = false, features = ["tls"]}
 
 [dev-dependencies]
 assert_approx_eq = "^1.1.0"

@@ -3,7 +3,7 @@ use std::iter;
 use crate::{
     commands::Command,
     error::OsrsError,
-    utils::{context::CommandContext, math},
+    utils::{context::CommandContext, fmt, math},
 };
 use prettytable::{color, format::Alignment, Attr, Cell, Row, Table};
 use structopt::StructOpt;
@@ -81,7 +81,7 @@ impl Command for CalcStewCommand {
                 // Calculate prob for hitting each boost value (1-5)
                 .chain(dose_probabilities.into_iter().map(|(boost, prob)| {
                     let mut cell = Cell::new_align(
-                        &format!("{:.1}%", prob * 100.0),
+                        &fmt::fmt_probability(prob),
                         Alignment::RIGHT,
                     );
 

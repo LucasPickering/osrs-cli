@@ -17,6 +17,7 @@ mod config;
 mod error;
 mod utils;
 
+/// All top-level CLI commands.
 #[derive(Debug, StructOpt)]
 enum OsrsCommandType {
     Calc(CalcCommand),
