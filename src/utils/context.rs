@@ -20,6 +20,7 @@ impl CommandContext {
     }
 
     /// Format the given number. The formatting will be based on locale.
+    // TODO move this into the fmt module
     pub fn fmt_num<T: ToFormattedString>(&self, num: &T) -> String {
         num.to_formatted_string(&self.locale)
     }

@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     commands::Command,
     error::OsrsError,
-    utils::{context::CommandContext, math},
+    utils::{context::CommandContext, fmt, math},
 };
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -163,8 +163,8 @@ impl Command for CalcDropCommand {
         );
 
         println!(
-            "{:.4}% chance of {} successes in {} attempts",
-            result_prob * 100.0,
+            "{} chance of {} successes in {} attempts",
+            fmt::fmt_probability_long(result_prob),
             self.target,
             self.iterations
         );

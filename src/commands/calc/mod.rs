@@ -2,13 +2,15 @@
 //! calculations.
 
 mod drop;
+mod farm;
 mod stew;
 mod xp;
 
 use crate::{
     commands::{
         calc::{
-            drop::CalcDropCommand, stew::CalcStewCommand, xp::CalcXpCommand,
+            drop::CalcDropCommand, farm::CalcFarmCommand,
+            stew::CalcStewCommand, xp::CalcXpCommand,
         },
         Command, CommandType,
     },
@@ -20,6 +22,7 @@ use structopt::StructOpt;
 pub enum CalcCommandType {
     Drop(CalcDropCommand),
     Stew(CalcStewCommand),
+    Farm(CalcFarmCommand),
     Xp(CalcXpCommand),
 }
 
@@ -28,6 +31,7 @@ impl CommandType for CalcCommandType {
         match &self {
             Self::Drop(cmd) => cmd,
             Self::Stew(cmd) => cmd,
+            Self::Farm(cmd) => cmd,
             Self::Xp(cmd) => cmd,
         }
     }
