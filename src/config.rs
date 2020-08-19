@@ -6,19 +6,59 @@ use serde::{Deserialize, Serialize};
 pub const CONFIG_FILE_PATH: &str = if cfg!(debug_assertions) {
     "./osrs.json"
 } else {
-    "~/.config/ors.json"
+    "~/.config/osrs.json"
 };
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct OsrsConfig {
     /// For commands that take a player name, this player will be used when
     /// none is given.
     pub default_player: Option<String>,
+    pub farming: FarmingConfig,
+}
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct FarmingConfig {
+    pub herbs: FarmingHerbsConfig,
+}
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct FarmingHerbsConfig {
+    /// The list of herb patches being farmed
+    pub patches: Vec<HerbPatch>,
+    /// The type of compost being used
+    pub compost: Option<Compost>,
+    /// Do you have magic secateurs equipped? (10% yield bonus)
+    pub magic_secateurs: bool,
+    /// Do you have magic secateurs? (10% yield bonus)
+    pub farming_cape: bool,
+    /// Do you have a bottomless bucket?
+    pub bottomless_bucket: bool,
+    /// Do you have an attas seed planted at the farming guild while
+    /// harvesting?
+    pub attas_plant: bool,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum Compost {
+    Normal,
+    Supercompost,
+    Ultracompost,
+}
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct HerbPatch {
+    pub name: String,
+    /// Percentage yield bonus applied to this patch. Should NOT be used for
+    /// global yield bonuses.
+    pub yield_bonus_pct: u32,
+    pub xp_bonus_pct: u32,
+    pub disease_free: bool,
 }
 
 impl OsrsConfig {
     pub fn load() -> OsrsResult<Self> {
-        let mut s = Config::new();
+        let mut s = Config::try_from(&OsrsConfig::default()).unwrap();
         s.merge(File::with_name(CONFIG_FILE_PATH).required(false))?;
         s.try_into().map_err(OsrsError::from)
     }
