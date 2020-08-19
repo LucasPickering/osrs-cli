@@ -1,6 +1,6 @@
 use crate::{
     commands::Command,
-    error::{OsrsError, OsrsResult},
+    error::OsrsError,
     utils::{context::CommandContext, hiscore::HiscorePlayer, skill::Skill},
 };
 use colored::*;
@@ -30,11 +30,11 @@ const LEVEL_TO_XP: &[usize] = &[
 
 /// Convert the given level to an XP total. Returns an error if the given level
 /// is outside the supported range.
-fn level_to_xp(level: usize) -> OsrsResult<usize> {
+fn level_to_xp(level: usize) -> anyhow::Result<usize> {
     if 1 <= level && level <= LEVEL_TO_XP.len() {
         Ok(LEVEL_TO_XP[level - 1])
     } else {
-        Err(OsrsError::InvalidLevel(level))
+        Err(OsrsError::InvalidLevel(level).into())
     }
 }
 
@@ -95,7 +95,7 @@ impl CalcXpCommand {
     fn get_source_xp(
         context: &CommandContext,
         options: &SourceOptions,
-    ) -> OsrsResult<usize> {
+    ) -> anyhow::Result<usize> {
         match options {
             // Use a given xp value
             SourceOptions {
@@ -132,11 +132,12 @@ impl CalcXpCommand {
                 "Must specify exactly one of \
                     --from-xp, --from-lvl, or (--player and --skill)"
                     .into(),
-            )),
+            )
+            .into()),
         }
     }
 
-    fn get_dest_xp(options: &DestOptions) -> OsrsResult<usize> {
+    fn get_dest_xp(options: &DestOptions) -> anyhow::Result<usize> {
         match options {
             // Use a given xp value
             DestOptions {
@@ -153,13 +154,14 @@ impl CalcXpCommand {
             // Anything else is invalid input, freak out!
             _ => Err(OsrsError::ArgsError(
                 "Must specify exactly one of --to-xp or --to-lvl".into(),
-            )),
+            )
+            .into()),
         }
     }
 }
 
 impl Command for CalcXpCommand {
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         let source_xp = Self::get_source_xp(context, &self.source)?;
         let dest_xp = Self::get_dest_xp(&self.dest)?;
         println!(

@@ -5,7 +5,6 @@ use crate::{
         CalcCommand, Command, CommandType, HiscoreCommand, PingCommand,
         WikiCommand,
     },
-    error::OsrsResult,
     utils::context::CommandContext,
 };
 use commands::ConfigCommand;
@@ -47,12 +46,12 @@ struct OsrsOptions {
 }
 
 impl Command for OsrsOptions {
-    fn execute(&self, context: &CommandContext) -> OsrsResult<()> {
+    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         self.cmd.command().execute(context)
     }
 }
 
-fn run() -> OsrsResult<()> {
+fn run() -> anyhow::Result<()> {
     let context = CommandContext::load()?;
     let options = OsrsOptions::from_args();
     options.execute(&context)
@@ -63,6 +62,7 @@ fn main() {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);
+            eprintln!("{}", err.backtrace());
             1
         }
     };

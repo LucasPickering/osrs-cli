@@ -1,4 +1,4 @@
-use crate::{config::OsrsConfig, error::OsrsResult};
+use crate::config::OsrsConfig;
 use num_format::{SystemLocale, ToFormattedString};
 use reqwest::blocking::Client;
 
@@ -11,7 +11,7 @@ pub struct CommandContext {
 }
 
 impl CommandContext {
-    pub fn load() -> OsrsResult<CommandContext> {
+    pub fn load() -> anyhow::Result<CommandContext> {
         let config = OsrsConfig::load()?;
         let locale = SystemLocale::default()?;
         let http_client = reqwest::blocking::Client::new();
