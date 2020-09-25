@@ -1,4 +1,5 @@
 #![deny(clippy::all, unused)]
+#![feature(backtrace)]
 
 use crate::{
     commands::{
@@ -8,7 +9,7 @@ use crate::{
     utils::context::CommandContext,
 };
 use commands::ConfigCommand;
-use std::process;
+use std::{backtrace::BacktraceStatus, process};
 use structopt::StructOpt;
 
 mod commands;
@@ -38,7 +39,7 @@ impl CommandType for OsrsCommandType {
 }
 
 /// Oldschool RuneScape CLI.
-/// Bugs/suggestions: https://github.com/LucasPickering/osrs-cli
+/// Bugs/suggestions: https://github.com/LucasPickering/osrs-cli/issues
 #[derive(Debug, StructOpt)]
 struct OsrsOptions {
     #[structopt(subcommand)]
@@ -62,7 +63,11 @@ fn main() {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);
-            eprintln!("{}", err.backtrace());
+            // print a backtrace if available
+            let bt = err.backtrace();
+            if bt.status() == BacktraceStatus::Captured {
+                eprintln!("{}", bt);
+            }
             1
         }
     };

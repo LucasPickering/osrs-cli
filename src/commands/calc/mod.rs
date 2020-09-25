@@ -1,22 +1,28 @@
 //! This command is a container for additional subcommands related to making
 //! calculations.
 
+mod prob;
 mod xp;
 
 use crate::{
-    commands::{calc::xp::CalcXpCommand, Command, CommandType},
+    commands::{
+        calc::{prob::CalcProbCommand, xp::CalcXpCommand},
+        Command, CommandType,
+    },
     utils::context::CommandContext,
 };
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub enum CalcCommandType {
+    Prob(CalcProbCommand),
     Xp(CalcXpCommand),
 }
 
 impl CommandType for CalcCommandType {
     fn command(&self) -> &dyn Command {
         match &self {
+            Self::Prob(cmd) => cmd,
             Self::Xp(cmd) => cmd,
         }
     }
