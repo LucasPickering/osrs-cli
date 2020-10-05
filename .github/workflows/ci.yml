@@ -1,0 +1,56 @@
+name: Lint, Test, and Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  COMPOSE_FILE: docker-compose.ci.yml
+
+jobs:
+  lint:
+    name: "Clippy & Rustfmt"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Cache cargo files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+      - name: Install dependencies
+        run: |
+          rustup component add rustfmt clippy
+      - name: Run rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D clippy::all
+
+  test:
+    name: "Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Cache cargo files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+      - name: Run test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
