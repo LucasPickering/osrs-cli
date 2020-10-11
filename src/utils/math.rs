@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 /// Calculate numerical combination `nCk` (n choose k).
 pub fn combination(n: usize, k: usize) -> usize {
     // safety check to prevent overflow/underflow
@@ -43,7 +45,23 @@ pub fn binomial_cdf(
     n: usize,
     k_values: &mut dyn Iterator<Item = usize>,
 ) -> f64 {
-    k_values.map(|k_i| binomial(p, n, k_i)).sum()
+    let helper = |iter: &mut dyn Iterator<Item = usize>| {
+        iter.map(|k_i| binomial(p, n, k_i)).sum()
+    };
+
+    // There's an optimization here to minimize the number of
+    // binomial functions we have to run (minimize the domain of the
+    // cdf we compute). If k is less than half of n, then compute
+    // the odds of hitting the opposite result (e.g. <k instead of
+    // >=k), then subtract from 1.
+    let k_owned: HashSet<usize> = k_values.collect();
+    if k_owned.len() <= n / 2 {
+        // normal case
+        helper(&mut k_owned.into_iter())
+    } else {
+        // inverted case
+        1.0 - helper(&mut (0..=n).filter(|k_i| !k_owned.contains(k_i)))
+    }
 }
 
 #[cfg(test)]
@@ -96,5 +114,6 @@ mod tests {
         assert_approx_eq!(binomial_cdf(0.5, 2, &mut (0..=0)), 0.25);
         assert_approx_eq!(binomial_cdf(0.5, 2, &mut (0..=1)), 0.75);
         assert_approx_eq!(binomial_cdf(0.5, 2, &mut (0..=2)), 1.0);
+        assert_approx_eq!(binomial_cdf(0.5, 10, &mut (0..=2)), 0.0546875);
     }
 }

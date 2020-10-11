@@ -96,10 +96,7 @@ fn parse_target_range(s: &str) -> anyhow::Result<TargetRange> {
 #[derive(Copy, Clone, Debug)]
 enum TargetRange {
     Eq(usize),
-    Neq(usize),
-    Lt(usize),
     Lte(usize),
-    Gt(usize),
     Gte(usize),
 }
 
@@ -109,26 +106,8 @@ impl TargetRange {
     fn to_values(&self, iterations: usize) -> Box<dyn Iterator<Item = usize>> {
         match self {
             Self::Eq(k) => Box::new(*k..=*k),
-            Self::Neq(k) => Box::new((0..*k).chain(k + 1..=iterations)),
-            Self::Lt(k) => Box::new(0..=*k - 1),
             Self::Lte(k) => Box::new(0..=*k),
-            Self::Gt(k) => Box::new(*k + 1..=iterations),
             Self::Gte(k) => Box::new(*k..=iterations),
-        }
-    }
-
-    /// Invert this range, to create a range starting at the same point but
-    /// going in the opposite direction (and inclusion/exclusion of the point
-    /// is inverted). A range and its inversion together cover the entire
-    /// number scale without any overlap.
-    fn invert(&self) -> Self {
-        match self {
-            Self::Eq(k) => Self::Neq(*k),
-            Self::Neq(k) => Self::Eq(*k),
-            Self::Lt(k) => Self::Gte(*k),
-            Self::Lte(k) => Self::Gt(*k),
-            Self::Gt(k) => Self::Lte(*k),
-            Self::Gte(k) => Self::Lt(*k),
         }
     }
 }
@@ -137,10 +116,7 @@ impl Display for TargetRange {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Eq(k) => write!(f, "{}", k),
-            Self::Neq(k) => write!(f, "≠{}", k),
-            Self::Lt(k) => write!(f, "<{}", k),
             Self::Lte(k) => write!(f, "≤{}", k),
-            Self::Gt(k) => write!(f, ">{}", k),
             Self::Gte(k) => write!(f, "≥{}", k),
         }
     }
@@ -180,28 +156,11 @@ impl Command for CalcDropCommand {
         // up the probability of all the values in the
         // range. https://en.wikipedia.org/wiki/Binomial_distribution#Cumulative_distribution_function
 
-        // There's an optimization here to minimize the number of
-        // binomial functions we have to run (minimize the domain of the
-        // cdf we compute). If k is less than half of n, then compute
-        // the odds of hitting the opposite result (e.g. <k instead of
-        // >=k), then subtract from 1.
-        let result_prob: f64 = if self.target.to_values(self.iterations).count()
-            <= self.iterations / 2
-        {
-            // normal case
-            math::binomial_cdf(
-                self.probability,
-                self.iterations,
-                &mut self.target.to_values(self.iterations),
-            )
-        } else {
-            // inverted case
-            1.0 - math::binomial_cdf(
-                self.probability,
-                self.iterations,
-                &mut self.target.invert().to_values(self.iterations),
-            )
-        };
+        let result_prob: f64 = math::binomial_cdf(
+            self.probability,
+            self.iterations,
+            &mut self.target.to_values(self.iterations),
+        );
 
         println!(
             "{:.4}% chance of {} successes in {} attempts",
