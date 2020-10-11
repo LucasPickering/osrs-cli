@@ -1,12 +1,12 @@
 //! This command is a container for additional subcommands related to making
 //! calculations.
 
-mod prob;
+mod drop;
 mod xp;
 
 use crate::{
     commands::{
-        calc::{prob::CalcProbCommand, xp::CalcXpCommand},
+        calc::{drop::CalcDropCommand, xp::CalcXpCommand},
         Command, CommandType,
     },
     utils::context::CommandContext,
@@ -15,14 +15,14 @@ use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub enum CalcCommandType {
-    Prob(CalcProbCommand),
+    Drop(CalcDropCommand),
     Xp(CalcXpCommand),
 }
 
 impl CommandType for CalcCommandType {
     fn command(&self) -> &dyn Command {
         match &self {
-            Self::Prob(cmd) => cmd,
+            Self::Drop(cmd) => cmd,
             Self::Xp(cmd) => cmd,
         }
     }

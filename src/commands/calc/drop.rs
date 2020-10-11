@@ -146,9 +146,9 @@ impl Display for TargetRange {
     }
 }
 
-/// Probability calculator.
+/// Calculate the probability of getting a drop.
 #[derive(Debug, StructOpt)]
-pub struct CalcProbCommand {
+pub struct CalcDropCommand {
     /// The probability of a success. Typically your drop rate. Supports
     /// decimal, percentage, or fractions. E.g., `0.02`, `2%`, and `1/50` are
     /// all supported and equivalent.
@@ -165,7 +165,7 @@ pub struct CalcProbCommand {
     target: TargetRange,
 }
 
-impl Command for CalcProbCommand {
+impl Command for CalcDropCommand {
     fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
         // Valid probability
         if !(0.0..=1.0).contains(&self.probability) {
