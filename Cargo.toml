@@ -4,7 +4,7 @@ description = "Command line utility program for Oldschool RuneScape"
 edition = "2018"
 license = "MIT"
 name = "osrs-cli"
-version = "0.2.0"
+version = "0.3.0"
 [[bin]]
 name = "osrs"
 path = "src/main.rs"
