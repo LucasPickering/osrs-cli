@@ -935,6 +935,7 @@ dependencies = [
  "serde_json",
  "structopt",
  "thiserror",
+ "version_check 0.9.2",
 ]
 
 [[package]]
