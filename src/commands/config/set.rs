@@ -31,12 +31,16 @@ impl Command for ConfigSetCommand {
                 .read(false)
                 .write(true)
                 .create(true)
+                .truncate(true)
                 .open(CONFIG_FILE_PATH)?;
             serde_json::to_writer_pretty(&file, &new_cfg_value)?;
 
             println!("Set {} = {}", self.key, self.value);
         } else {
-            println!("No changes")
+            println!(
+                "No changes. \
+                Try `osrs config get` to see available keys & current settings."
+            )
         }
 
         Ok(())

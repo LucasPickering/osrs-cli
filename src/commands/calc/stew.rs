@@ -14,7 +14,8 @@ const MAX_DOSES: usize = 3;
 /// Highest possible boost
 const MAX_BOOST: usize = 5;
 
-/// TODO
+/// For each dose count, the odds of getting AT LEAST that boost (+0 through +5)
+/// https://oldschool.runescape.wiki/w/Spicy_stew#Probability
 const CUMULATIVE_PROBS: [[f64; MAX_BOOST + 1]; MAX_DOSES] = [
     [0.750, 0.250, 0.000, 0.000, 0.000, 0.000], // 1 dose
     [0.625, 0.375, 0.250, 0.125, 0.000, 0.000], // 2 doses
@@ -102,6 +103,12 @@ impl Command for CalcStewCommand {
                 .collect(),
             ));
         }
+
+        println!(
+            "The green bolded column indicates the requested boost. \
+            Use the number of doses with the highest probability in that column.
+            "
+        );
         table.printstd();
 
         Ok(())
