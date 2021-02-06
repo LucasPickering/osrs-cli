@@ -3,7 +3,17 @@
 A command line tool for doing lookups and calculations related to Oldschool RuneScape. Features include:
 
 - Calculate drop rate
--
+- Calculate XP to a level
+- Hiscores lookups
+- And more!
+
+## Installation
+
+Currently this is only installable via cargo:
+
+```
+cargo install osrs-cli
+```
 
 ## Examples
 
