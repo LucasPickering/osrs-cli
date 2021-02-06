@@ -5,7 +5,7 @@ edition = "2018"
 license = "MIT"
 name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
-version = "0.3.0"
+version = "0.3.1"
 
 [[bin]]
 name = "osrs"
