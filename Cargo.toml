@@ -2,6 +2,7 @@
 authors = ["Lucas Pickering <lucas@lucaspickering.me>"]
 description = "Command line utility program for Old School RuneScape"
 edition = "2018"
+keywords = ["osrs", "runescape"]
 license = "MIT"
 name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
