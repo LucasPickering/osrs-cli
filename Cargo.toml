@@ -1,10 +1,12 @@
 [package]
 authors = ["Lucas Pickering <lucas@lucaspickering.me>"]
-description = "Command line utility program for Oldschool RuneScape"
+description = "Command line utility program for Old School RuneScape"
 edition = "2018"
 license = "MIT"
 name = "osrs-cli"
+repository = "https://github.com/LucasPickering/osrs-cli"
 version = "0.3.0"
+
 [[bin]]
 name = "osrs"
 path = "src/main.rs"

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub const CONFIG_FILE_PATH: &str = if cfg!(debug_assertions) {
     "./osrs.json"
 } else {
-    "~/.config/ors.json"
+    "~/.config/osrs.json"
 };
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
