@@ -1,5 +1,5 @@
 #![deny(clippy::all, unused)]
-#![feature(backtrace)]
+#![cfg_attr(nightly, feature(backtrace))]
 
 use crate::{
     commands::{
@@ -9,7 +9,7 @@ use crate::{
     utils::context::CommandContext,
 };
 use commands::ConfigCommand;
-use std::{backtrace::BacktraceStatus, process};
+use std::process;
 use structopt::StructOpt;
 
 mod commands;
@@ -63,11 +63,18 @@ fn main() {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);
-            // print a backtrace if available
-            let bt = err.backtrace();
-            if bt.status() == BacktraceStatus::Captured {
-                eprintln!("{}", bt);
+
+            // Only use backtraces on nightly
+            #[cfg(nightly)]
+            {
+                // print a backtrace if available
+                use std::backtrace::BacktraceStatus;
+                let bt = err.backtrace();
+                if bt.status() == BacktraceStatus::Captured {
+                    eprintln!("{}", bt);
+                }
             }
+
             1
         }
     };
