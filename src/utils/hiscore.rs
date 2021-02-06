@@ -2,7 +2,6 @@
 
 use crate::utils::skill::{Skill, SKILLS};
 use csv::ReaderBuilder;
-use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::{collections::HashMap, convert::TryInto};
 
@@ -121,16 +120,12 @@ pub struct HiscorePlayer {
 
 impl HiscorePlayer {
     /// Load a player's data from the hiscore.
-    pub fn load(
-        http_client: &Client,
-        username: String,
-    ) -> anyhow::Result<Self> {
+    pub fn load(username: String) -> anyhow::Result<Self> {
         // Fetch data from the API
-        let body = http_client
-            .get(HISCORE_URL)
-            .query(&[("player", &username)])
-            .send()?
-            .text()?;
+        let body = ureq::get(HISCORE_URL)
+            .query("player", &username)
+            .call()?
+            .into_string()?;
 
         let mut rdr = ReaderBuilder::new()
             .has_headers(false)

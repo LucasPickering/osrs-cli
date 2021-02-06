@@ -33,13 +33,14 @@ version = "^0.10.1"
 features = ["with-system-locale"]
 version = "^0.4.0"
 
-[dependencies.reqwest]
-features = ["blocking"]
-version = "^0.10.7"
-
 [dependencies.serde]
 features = ["derive"]
 version = "^1.0.114"
+
+[dependencies.ureq]
+default-features = false
+features = ["tls"]
+version = "^2.0.1"
 
 [dev-dependencies]
 assert_approx_eq = "^1.1.0"
