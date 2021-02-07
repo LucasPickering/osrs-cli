@@ -9,7 +9,7 @@ A command line tool for doing lookups and calculations related to Oldschool Rune
 
 ## Installation
 
-Currently this is only installable via cargo:
+Currently this is only installable via cargo. **Requires Rust 1.46 or higher**.
 
 ```
 cargo install osrs-cli

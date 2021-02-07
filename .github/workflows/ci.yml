@@ -1,4 +1,4 @@
-name: Lint, Test, and Build
+name: Lint & Test
 
 on:
   push:
@@ -10,8 +10,9 @@ env:
   COMPOSE_FILE: docker-compose.ci.yml
 
 jobs:
-  lint:
-    name: "Clippy & Rustfmt"
+  # This uses the toolchain defined in rust-toolchain, NOT what's defined above
+  fmt:
+    name: "Rustfmt"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -22,24 +23,25 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
-      - name: Install dependencies
-        run: |
-          rustup component add rustfmt clippy
-      - name: Run rustfmt
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain') }}
+      - name: Rustfmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
-      - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features -- -D clippy::all
 
-  test:
-    name: "Test"
+  # Run clippy and tests for both stable and nightly
+  lint-test:
+    name: "Lint & Test"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # If you update stable, make sure to update the README
+        # If you update nightly, make sure to update the rust-toolchain file
+        rust: [1.46.0, nightly-2020-12-20]
+    env:
+      RUSTUP_TOOLCHAIN: ${{ matrix.rust }}
     steps:
       - uses: actions/checkout@master
       - name: Cache cargo files
@@ -49,8 +51,16 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
-      - name: Run test
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
+      - name: Install dependencies
+        run: |
+          rustup component add clippy
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D clippy::all
+      - name: Tests
         uses: actions-rs/cargo@v1
         with:
           command: test
