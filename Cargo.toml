@@ -6,7 +6,7 @@ keywords = ["osrs", "runescape"]
 license = "MIT"
 name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
-version = "0.3.1"
+version = "0.3.2"
 
 [[bin]]
 name = "osrs"
