@@ -25,7 +25,7 @@ osrs calc --help
 osrs calc drop --help
 ```
 
-### Calculate Drop Rate
+### Calculate drop rate
 
 If you're going for a pet with a `1/5000` drop rate and you want to know the odds of getting it in the first 1000 kills:
 
