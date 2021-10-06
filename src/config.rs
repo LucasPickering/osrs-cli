@@ -1,7 +1,10 @@
 use crate::error::OsrsError;
 use anyhow::Context;
-use config::{Config, File};
 use derive_more::Display;
+use figment::{
+    providers::{Format, Json},
+    Figment,
+};
 use serde::{Deserialize, Serialize};
 
 /// The path to the file where we store configuration.
@@ -84,12 +87,15 @@ pub struct HerbPatch {
 }
 
 impl OsrsConfig {
+    /// Load config data from the pre-defined config file path. Any missing
+    /// values will be populated with defaults.
     pub fn load() -> anyhow::Result<Self> {
-        let mut s = Config::try_from(&OsrsConfig::default()).unwrap();
-        s.merge(File::with_name(CONFIG_FILE_PATH).required(false))?;
-        s.try_into().with_context(|| {
-            format!("Error loading config from file `{}`", CONFIG_FILE_PATH)
-        })
+        Figment::new()
+            .join(Json::file(CONFIG_FILE_PATH))
+            .extract()
+            .with_context(|| {
+                format!("Error loading config from file `{}`", CONFIG_FILE_PATH)
+            })
     }
 
     /// Convert a (possibly empty) list of username parts into a username. If

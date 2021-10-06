@@ -3,7 +3,7 @@ use crate::{
     config::{OsrsConfig, CONFIG_FILE_PATH},
     utils::context::CommandContext,
 };
-use config::Config;
+use figment::Figment;
 use std::fs::OpenOptions;
 use structopt::StructOpt;
 
@@ -18,10 +18,12 @@ pub struct ConfigSetCommand {
 
 impl Command for ConfigSetCommand {
     fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
+        // Update the given field in the config
         let current_cfg_value = context.config();
-        let mut cfg = Config::try_from(current_cfg_value)?;
-        cfg.set(&self.key, self.value.as_str())?;
-        let new_cfg_value: OsrsConfig = cfg.try_into()?;
+        let new_cfg_value: OsrsConfig = Figment::new()
+            .join(("", current_cfg_value))
+            .merge((&self.key, self.value.as_str()))
+            .extract()?;
 
         // If the user didn't make any changes, then don't do anything. This
         // is mostly to prevent a success message when they put in a bogus key.
