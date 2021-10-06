@@ -25,9 +25,9 @@ impl Command for PingCommand {
 
         let hostname = format!("oldschool{}.runescape.com", self.world - 300);
 
+        let mut cmd = process::Command::new("ping");
         // Arg format depends on system
-        let result = if cfg!(target_os = "windows") {
-            let mut cmd = process::Command::new("ping");
+        if cfg!(target_os = "windows") {
             match self.count {
                 // On Windows, "-n -1" means run forever
                 None => {
@@ -37,9 +37,7 @@ impl Command for PingCommand {
                     cmd.args(&["-n", &count.to_string()]);
                 }
             };
-            cmd.arg(&hostname).spawn()
         } else {
-            let mut cmd = process::Command::new("ping");
             match self.count {
                 // On Linux, it runs forever if you just omit "-c"
                 None => {}
@@ -47,8 +45,8 @@ impl Command for PingCommand {
                     cmd.args(&["-c", &count.to_string()]);
                 }
             }
-            cmd.arg(&hostname).spawn()
         };
+        let result = cmd.arg(&hostname).spawn();
 
         // Execute the command
         let mut child = result.expect("ping command failed to start");

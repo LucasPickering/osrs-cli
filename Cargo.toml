@@ -1,11 +1,13 @@
 [package]
 authors = ["Lucas Pickering <lucas@lucaspickering.me>"]
 description = "Command line utility program for Old School RuneScape"
-edition = "2018"
+edition = "2021"
 keywords = ["osrs", "runescape"]
 license = "MIT"
 name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
+# If you update this, make sure to update the version used in ci.yml
+rust-version = "1.56"
 version = "0.3.2"
 
 [[bin]]
@@ -27,7 +29,7 @@ thiserror = "^1.0.0"
 [dependencies.config]
 default-features = false
 features = ["json"]
-version = "^0.10.1"
+version = "^0.11.0"
 
 [dependencies.num-format]
 features = ["with-system-locale"]
