@@ -1,4 +1,4 @@
-#![deny(clippy::all, unused)]
+#![deny(clippy::all)]
 #![cfg_attr(nightly, feature(backtrace))]
 
 use crate::{

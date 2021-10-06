@@ -17,9 +17,9 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "^1.0.0"
 colored = "^2.0.0"
-config = {version = "^0.11.0", default-features = false, features = ["json"]}
 csv = "^1.1.3"
 derive_more = "^0.99.16"
+figment = {version = "^0.10.6", features = ["json"]}
 lazy_static = "^1.4.0"
 num-format = {version = "^0.4.0", features = ["with-system-locale"]}
 open = "^1.4.0"
