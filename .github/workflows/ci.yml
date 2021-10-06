@@ -37,10 +37,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # If you update stable, make sure to update the README
-        # If you update nightly, make sure to update the rust-toolchain file
-        rust: [1.46.0, nightly-2020-12-20]
+        # If you update stable, make sure to update Cargo.toml
+        # TODO update beta to stable after 1.56 releases
+        # If you update nightly, make sure to update rust-toolchain.toml
+        rust: [beta-2021-10-06, nightly-2021-10-06]
     env:
+      # This overrides rust-toolchain.toml
       RUSTUP_TOOLCHAIN: ${{ matrix.rust }}
     steps:
       - uses: actions/checkout@master

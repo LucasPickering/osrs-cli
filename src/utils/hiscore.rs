@@ -111,8 +111,6 @@ pub struct HiscoreMinigame {
 /// Hiscore results for a player.
 #[derive(Clone, Debug)]
 pub struct HiscorePlayer {
-    /// Player's name
-    username: String,
     /// Data on all skills for the player, keyed by skill name
     skills: HashMap<Skill, HiscoreSkill>,
     minigames: HashMap<&'static str, HiscoreMinigame>,
@@ -171,13 +169,10 @@ impl HiscorePlayer {
             })
             .collect();
 
-        Ok(Self {
-            username,
-            skills,
-            minigames,
-        })
+        Ok(Self { skills, minigames })
     }
 
+    /// Get data for a single skill from the player
     pub fn skill(&self, skill: Skill) -> &HiscoreSkill {
         self.skills.get(&skill).unwrap()
     }

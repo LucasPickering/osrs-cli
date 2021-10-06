@@ -69,7 +69,7 @@ fn parse_target_range(s: &str) -> anyhow::Result<TargetRange> {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"^(\d+)([-+]?)$").unwrap();
     }
-    match RE.captures(&s) {
+    match RE.captures(s) {
         // no buen
         None => {
             Err(OsrsError::ArgsError(format!("Invalid target range: {}", s))
@@ -103,7 +103,7 @@ enum TargetRange {
 impl TargetRange {
     /// Convert to an iterator of values. This should cover all values in the
     /// target range, as a sub-set of `[0, iterations]`.
-    fn to_values(&self, iterations: usize) -> Box<dyn Iterator<Item = usize>> {
+    fn as_values(&self, iterations: usize) -> Box<dyn Iterator<Item = usize>> {
         match self {
             Self::Eq(k) => Box::new(*k..=*k),
             Self::Lte(k) => Box::new(0..=*k),
@@ -159,7 +159,7 @@ impl Command for CalcDropCommand {
         let result_prob: f64 = math::binomial_cdf(
             self.probability,
             self.iterations,
-            &mut self.target.to_values(self.iterations),
+            &mut self.target.as_values(self.iterations),
         );
 
         println!(

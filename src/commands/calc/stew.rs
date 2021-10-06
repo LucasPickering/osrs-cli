@@ -55,7 +55,7 @@ impl Command for CalcStewCommand {
         );
 
         table.set_titles(Row::new(
-            iter::once(Cell::new_align(&"Doses/Stew", Alignment::RIGHT))
+            iter::once(Cell::new_align("Doses/Stew", Alignment::RIGHT))
                 // Add one col for each boost number (1-5)
                 .chain((1..=MAX_BOOST).map(|boost| {
                     let mut cell = Cell::new_align(

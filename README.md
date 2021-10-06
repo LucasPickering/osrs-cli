@@ -9,7 +9,7 @@ A command line tool for doing lookups and calculations related to Oldschool Rune
 
 ## Installation
 
-Currently this is only installable via cargo. **Requires Rust 1.46 or higher**.
+Currently this is only installable via cargo. **See `Cargo.toml` for minimum Rust version**.
 
 ```
 cargo install osrs-cli
@@ -82,4 +82,14 @@ Curious how laggy a world will be? Ping it!
 osrs ping 450
 ```
 
-### And more!
+## Rust Version
+
+See `Cargo.toml` for minimum Rust version. This can be built on both stable/beta and nightly. It optionally uses the following nightly features, which are simply disabled when building on stable/beta:
+
+- Rust Features
+  - [backtrace](https://github.com/rust-lang/rust/issues/53487)
+- Rustfmt
+  - imports_granularity
+  - [wrap_comments](https://github.com/rust-lang/rustfmt/issues/3347)
+
+[Here's a handy site for finding new Rust nightly versions](https://rust-lang.github.io/rustup-components-history/).
