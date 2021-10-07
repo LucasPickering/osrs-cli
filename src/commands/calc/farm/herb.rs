@@ -11,6 +11,7 @@ use structopt::StructOpt;
 use strum::{EnumIter, IntoEnumIterator};
 
 // TODO add command for setting herb config more easily
+// TODO test all edge cases against the wiki calculator
 
 /// Calculate yield, XP, and profit related to farming herbs
 #[derive(Debug, StructOpt)]
@@ -98,6 +99,17 @@ impl FarmingHerbsConfig {
             Some(Compost::Normal) => 4,
             Some(Compost::Supercompost) => 5,
             Some(Compost::Ultracompost) => 6,
+        }
+    }
+
+    /// Get the amount of XP gained for spreading one bucket of the configured
+    /// compost type. Returns zero if the player isn't using compost
+    fn compost_xp(&self) -> f64 {
+        match self.compost {
+            None => 0.0,
+            Some(Compost::Normal) => 18.0,
+            Some(Compost::Supercompost) => 26.0,
+            Some(Compost::Ultracompost) => 36.0,
         }
     }
 
@@ -216,6 +228,8 @@ impl HerbPatch {
     /// Calculate the expected yield of this patch, **assuming it is fully
     /// grown**. I.e., this **doesn't** take into account the chance of the
     /// patch dying before adulthood.
+    ///
+    /// See https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
     fn calc_expected_yield(
         &self,
         herb_cfg: &FarmingHerbsConfig,
@@ -241,9 +255,9 @@ impl HerbPatch {
         let expected_yield =
             self.calc_expected_yield(herb_cfg, farming_level, herb)
                 * survival_chance;
-        // TODO include XP for applying compost
-        let expected_xp =
-            herb.xp_per_plant() + herb.xp_per_harvest() * expected_yield;
+        let expected_xp = herb_cfg.compost_xp()
+            + herb.xp_per_plant()
+            + herb.xp_per_harvest() * expected_yield;
 
         PatchStats {
             survival_chance,
