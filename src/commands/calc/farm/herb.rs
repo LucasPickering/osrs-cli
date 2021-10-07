@@ -173,9 +173,10 @@ impl HerbPatch {
         };
 
         // All herbs have 4 growth cycles, and we want to find the chance of
-        // exactly 0 disease instances in 4 trials
+        // exactly 0 disease instances in 3 (n-1) trials. We use n-1 because
+        // the last growth cycle can't have disease
         // https://oldschool.runescape.wiki/w/Seeds#Herb_seeds
-        math::binomial(disease_chance_per_cycle, 4, 0)
+        math::binomial(disease_chance_per_cycle, 3, 0)
     }
 
     /// Calculate the chance to "save a life" when picking an herb. This is
@@ -198,15 +199,16 @@ impl HerbPatch {
         let (chance1, chance99) = herb.chance_to_save();
 
         // This comes straight from the wiki, it's a lot easier to read in
-        // their formatting
-        ((chance1 * (99.0 - farming_level as f64) / 98.0)
-            + (chance99 * (farming_level as f64 - 1.0) / 98.0)
+        // their formatting. The formatted formula doesn't mention anything
+        // about the `floor` though, but it's in the calculator source
+        // https://oldschool.runescape.wiki/w/Calculator:Template/Farming/Herbs2?action=edit
+        (f64::floor((chance1 * (99.0 - farming_level as f64) / 98.0)
+            + (chance99 * (farming_level as f64 - 1.0) / 98.0))
                 * (1.0 + item_bonus)
-                // I'm not *100%* sure that this is the correct place to add
-                // Attas since it doesn't say on the Wiki but let's try it
-                // TODO dig through the calculator code to figure out what it does
-                // https://oldschool.runescape.wiki/w/Calculator:Farming/Herbs/Template?action=edit
-                * (1.0 + diary_bonus + attas_bonus)
+                * (1.0 + diary_bonus)
+                // Attas doesn't appear in the formula on the page above, but
+                // it's also in the calculator source (see link above)
+                * (1.0 + attas_bonus)
             + 1.0)
             / 256.0
     }
