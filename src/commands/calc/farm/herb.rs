@@ -154,13 +154,22 @@ impl HerbPatch {
         let disease_chance_per_cycle = if self.disease_free {
             0.0
         } else {
-            // TODO include Iasor logic
-            match herb_cfg.compost {
+            // Base chance is based on compost
+            let base_chance = match herb_cfg.compost {
                 None => 27.0 / 128.0,
                 Some(Compost::Normal) => 14.0 / 128.0,
                 Some(Compost::Supercompost) => 6.0 / 128.0,
                 Some(Compost::Ultracompost) => 3.0 / 128.0,
-            }
+            };
+
+            // Iasor reduces chance by 80%
+            let modifier = match herb_cfg.anima_plant {
+                Some(AnimaPlant::Iasor) => 0.2,
+                _ => 1.0,
+            };
+
+            // Rate can't be lower than 1/128
+            f64::max(base_chance * modifier, 1.0 / 128.0)
         };
 
         // All herbs have 4 growth cycles, and we want to find the chance of
