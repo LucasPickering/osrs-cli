@@ -35,7 +35,7 @@ pub struct CalcStewCommand {
 }
 
 impl Command for CalcStewCommand {
-    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
+    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
         if self.boost > MAX_BOOST {
             return Err(OsrsError::ArgsError(format!(
                 "Maximum boost is {} levels",
@@ -70,12 +70,10 @@ impl Command for CalcStewCommand {
                 .collect(),
         ));
 
-        for (doses_per_stew, dose_probabilities) in
-            probabilities.doses_iter().into_iter()
-        {
+        for (doses_per_stew, dose_probabilities) in probabilities.doses_iter() {
             table.add_row(Row::new(
                 iter::once(Cell::new_align(
-                    &context.fmt_num(&doses_per_stew.0),
+                    &fmt::fmt_int(&doses_per_stew.0),
                     Alignment::RIGHT,
                 ))
                 // Calculate prob for hitting each boost value (1-5)
@@ -207,11 +205,11 @@ impl Probabilities {
     /// (probabilities for a dose count), inner iterators are (boost,
     /// probability) pairs.
     // TODO make this Iterator instead of Vec
-    fn doses_iter(&self) -> Vec<(Doses, Vec<(Boost, f64)>)> {
-        self.probabilities
-            .iter()
-            .enumerate()
-            .map(|(doses_idx, row_probabilities)| {
+    fn doses_iter(
+        &self,
+    ) -> impl Iterator<Item = (Doses, Vec<(Boost, f64)>)> + '_ {
+        self.probabilities.iter().enumerate().map(
+            |(doses_idx, row_probabilities)| {
                 (
                     Doses::from_index(doses_idx),
                     row_probabilities
@@ -222,7 +220,7 @@ impl Probabilities {
                         })
                         .collect(),
                 )
-            })
-            .collect()
+            },
+        )
     }
 }
