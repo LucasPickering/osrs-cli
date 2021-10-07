@@ -1,7 +1,9 @@
 use crate::{
     commands::Command,
     error::OsrsError,
-    utils::{context::CommandContext, hiscore::HiscorePlayer, skill::Skill},
+    utils::{
+        context::CommandContext, fmt, hiscore::HiscorePlayer, skill::Skill,
+    },
 };
 use colored::*;
 use structopt::StructOpt;
@@ -165,12 +167,12 @@ impl Command for CalcXpCommand {
         let dest_xp = Self::get_dest_xp(&self.dest)?;
         println!(
             "{} XP (Level {}) => {} XP (Level {}) = {}",
-            context.fmt_num(&source_xp),
+            fmt::fmt_int(&source_xp),
             xp_to_level(source_xp),
-            context.fmt_num(&dest_xp),
+            fmt::fmt_int(&dest_xp),
             xp_to_level(dest_xp),
             // TODO make this show negative numbers
-            format!("{} XP", context.fmt_num(&dest_xp.wrapping_sub(source_xp)))
+            format!("{} XP", fmt::fmt_int(&dest_xp.wrapping_sub(source_xp)))
                 .blue()
                 .bold()
         );

@@ -1,6 +1,6 @@
 use crate::{
     commands::Command,
-    utils::{context::CommandContext, hiscore::HiscorePlayer},
+    utils::{context::CommandContext, fmt, hiscore::HiscorePlayer},
 };
 use prettytable::{cell, row, Table};
 use structopt::StructOpt;
@@ -29,9 +29,9 @@ impl Command for HiscoreCommand {
         for skill in player.skills() {
             table.add_row(row![
                 skill.skill,
-                r->context.fmt_num(&skill.rank),
-                r->context.fmt_num(&skill.level),
-                r->context.fmt_num(&skill.xp),
+                r->fmt::fmt_int(&skill.rank),
+                r->fmt::fmt_int(&skill.level),
+                r->fmt::fmt_int(&skill.xp),
             ]);
         }
         table.printstd();
@@ -47,8 +47,8 @@ impl Command for HiscoreCommand {
         for minigame in player.minigames() {
             table.add_row(row![
                 minigame.name,
-                r->context.fmt_num(&minigame.rank),
-                r->context.fmt_num(&minigame.score),
+                r->fmt::fmt_int(&minigame.rank),
+                r->fmt::fmt_int(&minigame.score),
             ]);
         }
         table.printstd();
