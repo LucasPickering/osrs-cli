@@ -1,6 +1,8 @@
-use crate::error::OsrsError;
+use crate::{
+    error::OsrsError,
+    utils::farm::{AnimaPlant, Compost, HerbPatch},
+};
 use anyhow::Context;
-use derive_more::Display;
 use figment::{
     providers::{Format, Json},
     Figment,
@@ -30,7 +32,7 @@ pub struct FarmingConfig {
 
 /// Configuration related to a player's herb patches
 ///
-/// Impls for this type live in [crate::commands::calc::farm::herb].
+/// Impls for this type live in [crate::utils::farm].
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct FarmingHerbsConfig {
     /// The list of herb patches being farmed
@@ -46,44 +48,6 @@ pub struct FarmingHerbsConfig {
     /// The type of Anima plant currently alive at the Farming Guild (can
     /// affect disease and yield rates)
     pub anima_plant: Option<AnimaPlant>,
-}
-
-/// Different types of compost that can be applied to a farming patch
-#[derive(Copy, Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Compost {
-    Normal,
-    Supercompost,
-    Ultracompost,
-}
-
-/// A type of plant that has global impact on how other crops grow
-/// https://oldschool.runescape.wiki/w/Anima_seed
-#[derive(Copy, Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum AnimaPlant {
-    /// https://oldschool.runescape.wiki/w/Kronos_seed
-    Kronos,
-    /// Increases yield https://oldschool.runescape.wiki/w/Attas_seed
-    Attas,
-    /// Lowers disease chance https://oldschool.runescape.wiki/w/Iasor_seed
-    Iasor,
-}
-
-/// An herb farming patch. Different patches can have different attributes
-/// based on the user's unlocks.
-// TODO make this an enum for each patch so we can be more restrictive about
-// which stats get which buffs
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct HerbPatch {
-    pub name: String,
-    /// Percentage yield bonus applied to this patch. Should NOT be used for
-    /// global yield bonuses.
-    pub yield_bonus_pct: u32,
-    /// Percentage XP bonus applied to this patch.
-    pub xp_bonus_pct: u32,
-    /// Is this patch guaranteed to be disease-free?
-    pub disease_free: bool,
 }
 
 impl OsrsConfig {
