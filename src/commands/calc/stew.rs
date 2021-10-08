@@ -204,7 +204,6 @@ impl Probabilities {
     /// Get an iterator for this table. Outer iterator is table rows
     /// (probabilities for a dose count), inner iterators are (boost,
     /// probability) pairs.
-    // TODO make this Iterator instead of Vec
     fn doses_iter(
         &self,
     ) -> impl Iterator<Item = (Doses, Vec<(Boost, f64)>)> + '_ {
