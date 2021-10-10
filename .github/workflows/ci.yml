@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  # Run master pipeline every day at midnight
+  schedule:
+    - cron: "0 0 * * *"
   pull_request:
 
 env:
