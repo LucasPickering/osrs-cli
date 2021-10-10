@@ -218,7 +218,7 @@ impl HerbPatch {
     /// account the survival chance.
     pub fn calc_patch_stats(
         self,
-        farming_level: u32,
+        farming_level: usize,
         herb_cfg: &FarmingHerbsConfig,
         herb: Herb,
     ) -> PatchStats {
@@ -278,7 +278,7 @@ impl HerbPatch {
     fn calc_chance_to_save(
         self,
         herb_cfg: &FarmingHerbsConfig,
-        farming_level: u32,
+        farming_level: usize,
         herb: Herb,
     ) -> f64 {
         let item_bonus = herb_cfg.calc_item_chance_to_save();
@@ -313,7 +313,7 @@ impl HerbPatch {
     fn calc_expected_yield(
         self,
         herb_cfg: &FarmingHerbsConfig,
-        farming_level: u32,
+        farming_level: usize,
         herb: Herb,
     ) -> f64 {
         herb_cfg.harvest_lives() as f64
