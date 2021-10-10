@@ -17,7 +17,7 @@ impl Command for HiscoreCommand {
     fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         let username =
             context.config().get_username(self.username.as_slice())?;
-        let player = HiscorePlayer::load(username)?;
+        let player = HiscorePlayer::load(&username)?;
 
         // Print a table for skills
         println!("Skills");

@@ -1,6 +1,7 @@
 //! Utilities for fetching player data from the OSRS hiscores.
 
 use crate::utils::skill::{Skill, SKILLS};
+use anyhow::Context;
 use csv::ReaderBuilder;
 use serde::Deserialize;
 use std::{collections::HashMap, convert::TryInto};
@@ -11,8 +12,9 @@ const HISCORE_URL: &str =
 
 /// The list of minigames tracked in the hiscore. This order is very important
 /// because it corresponds to the order they are in the response.
-/// TODO fill this list out
 const MINIGAMES: &[&str] = &[
+    // I'm *pretty sure* these first 3 are just placeholders to delimit skills
+    // vs minigames
     "1?",
     "2?",
     "3?",
@@ -23,7 +25,8 @@ const MINIGAMES: &[&str] = &[
     "Clue Scroll (Hard)",
     "Clue Scroll (Elite)",
     "Clue Scroll (Master)",
-    "11?",
+    "LMS - Rank",
+    "Soul Wars Zeal",
     "Abyssal Sire",
     "Alchemical Hydra",
     "Barrows Chests",
@@ -52,16 +55,19 @@ const MINIGAMES: &[&str] = &[
     "K'ril Tsutsaroth",
     "Mimic",
     "Nightmare",
+    "Phosani's Nightmare",
     "Obor",
     "Sarachnis",
     "Scorpia",
     "Skotizo",
+    "Tempoross",
     "The Guantlet",
     "The Corrupted Guantlet",
     "Theatre of Blood",
+    "Theatre of Blood: Hard Mode",
     "Thermonuclear Smoke Devil",
     "TzKal-Zuk",
-    "TzTok-Jab",
+    "TzTok-Jad",
     "Venenatis",
     "Vet'ion",
     "Vorkath",
@@ -113,28 +119,18 @@ pub struct HiscoreMinigame {
 pub struct HiscorePlayer {
     /// Data on all skills for the player, keyed by skill name
     skills: HashMap<Skill, HiscoreSkill>,
+    /// Data on all minigames/bosses for the player, keyed by minigame/boss
+    /// name
     minigames: HashMap<&'static str, HiscoreMinigame>,
 }
 
 impl HiscorePlayer {
     /// Load a player's data from the hiscore.
-    pub fn load(username: String) -> anyhow::Result<Self> {
-        // Fetch data from the API
-        let body = ureq::get(HISCORE_URL)
-            .query("player", &username)
-            .call()?
-            .into_string()?;
-
-        let mut rdr = ReaderBuilder::new()
-            .has_headers(false)
-            .flexible(true)
-            .from_reader(body.as_bytes());
-        let mut items = rdr
-            .deserialize()
-            // Iterator magic to convert Vec<Result> -> Result<Vec>
-            // If any item fails, this whole thing will fail
-            .collect::<Result<Vec<HiscoreItem>, csv::Error>>()?
-            .into_iter();
+    pub fn load(username: &str) -> anyhow::Result<Self> {
+        // It's important that we convert to an iterator *now*, so that the
+        // two blocks below use the same iterator, and each row will only be
+        // consumed once
+        let mut items = load_hiscore_items(username)?.into_iter();
 
         let skills: HashMap<Skill, HiscoreSkill> = SKILLS
             .iter()
@@ -177,7 +173,8 @@ impl HiscorePlayer {
         self.skills.get(&skill).unwrap()
     }
 
-    /// Get a list of all skills for this player, in the standard order.
+    /// Get a list of all skills for this player, in the standard order (i.e.)
+    /// the order shown in the hiscores/in-game skill panel)
     pub fn skills(&self) -> Vec<&HiscoreSkill> {
         // We can't just use self.skills.values() because they have to be in
         // the correct order
@@ -195,5 +192,100 @@ impl HiscorePlayer {
             // Any minigame that the user has no entry for will be missing here
             .filter_map(|name| self.minigames.get(name))
             .collect()
+    }
+}
+
+/// Load a list of hiscore entries for a player from the OSRS API. The API
+/// response is a list of CSV entries formatted as `rank,level,xp` for skills
+/// followed by `rank,score` for minigames/bosses. Entries are unlabeled so
+/// each oen is identified only by its position in the list.
+fn load_hiscore_items(username: &str) -> anyhow::Result<Vec<HiscoreItem>> {
+    // Fetch data from the API
+    let body = ureq::get(HISCORE_URL)
+        .query("player", username)
+        .call()?
+        .into_string()?;
+
+    let mut rdr = ReaderBuilder::new()
+        .has_headers(false)
+        .flexible(true)
+        .from_reader(body.as_bytes());
+    rdr.deserialize()
+        // Iterator magic to convert Vec<Result> -> Result<Vec>
+        // If any item fails, this whole thing will fail
+        .collect::<Result<Vec<HiscoreItem>, csv::Error>>()
+        .with_context(|| "Error parsing hiscore data")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Make sure our parsing logic lines up with the current response format
+    /// of the hiscores. We expect this test to break any time they add more
+    /// lines to the hiscore response (which is typically when they release a
+    /// new minigame/boss). Typically the fix is as easy as adding the new row
+    /// to the `MINIGAMES` constant
+    #[test]
+    fn test_hiscore_response_parse() {
+        let username = "Hey Jase"; // Sorry buddy you're the guinea pig
+
+        // Load the raw CSV data
+        let raw_response = load_hiscore_items(username).unwrap();
+        // Also load via our parsing logic
+        let player = HiscorePlayer::load("Hey Jase").unwrap();
+
+        assert_eq!(
+            SKILLS.len() + MINIGAMES.len(),
+            raw_response.len(),
+            "Unexpected number of rows in hiscore response. \
+            Skill or minigame list needs to be updated."
+        );
+
+        // Make sure that the skill values all line up correctly
+        for (i, skill) in player.skills().into_iter().enumerate() {
+            let raw_row = raw_response[i];
+            assert_eq!(
+                skill.rank as isize, raw_row.rank,
+                "Incorrect rank for skill {}",
+                skill.skill
+            );
+            assert_eq!(
+                skill.level as isize, raw_row.score,
+                "Incorrect level for skill {}",
+                skill.skill
+            );
+            assert_eq!(
+                Some(skill.xp as isize),
+                raw_row.xp,
+                "Incorrect XP for skill {}",
+                skill.skill
+            );
+        }
+
+        // Make sure each minigame *that has data* appears in the player data.
+        // Minigames with an insufficient score will appear as `-1` instead of
+        // being populated, and we expect those to be excluded from the parsed
+        // data. We want to skip over those in our check here.
+        let parsed_minigames = player.minigames();
+        let mut skipped = 0;
+        for (i, raw_row) in raw_response[SKILLS.len()..].iter().enumerate() {
+            dbg!(&raw_row);
+            if raw_row.rank == -1 {
+                skipped += 1;
+            } else {
+                let parsed_minigame = parsed_minigames[i - skipped];
+                assert_eq!(
+                    parsed_minigame.rank as isize, raw_row.rank,
+                    "Incorrect rank for minigame {}",
+                    parsed_minigame.name
+                );
+                assert_eq!(
+                    parsed_minigame.score as isize, raw_row.score,
+                    "Incorrect score for minigame {}",
+                    parsed_minigame.name
+                );
+            }
+        }
     }
 }
