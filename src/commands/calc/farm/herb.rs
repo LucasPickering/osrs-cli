@@ -42,21 +42,20 @@ impl Command for CalcFarmHerbCommand {
         let farming_level = self.farming_level.unwrap_or(1);
 
         // Print a little prelude to give the user some info
-        // TODO make yield/XP values per run instead of average per patch
-        println!("All values are an average across all patches. Yield values take into account survival chance.");
-        println!();
         println!("Farming level: {}", farming_level);
         println!("{}", &herb_cfg);
+        println!();
+        println!("Survival chance is an average across all patches. Yield values take into account survival chance.");
 
         let mut table = Table::new();
         table.set_format(
             *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
         );
-        table.set_titles(row!["Herb", r->"Survival Chance", r->"Yield per Seed", r->"XP per Seed"]);
+        table.set_titles(row!["Herb", r->"Survival Chance", r->"Yield per Run", r->"XP per Run"]);
 
         for herb in Herb::iter() {
             let herb_stats =
-                calc_average_patch_stats(farming_level, herb_cfg, herb);
+                calc_total_patch_stats(farming_level, herb_cfg, herb);
             // TODO include price data here
             table.add_row(row![
                 herb.to_string(),
@@ -71,21 +70,34 @@ impl Command for CalcFarmHerbCommand {
     }
 }
 
-/// Calculate output statistics for *all* patches and average them together.
-/// Most players plant the same herb in all patches, so a simple average works
-/// for that case to give average yield/profit numbers.
-///
-/// If you really want to min/max you could plant different herbs in different
-/// patches but this function ignores those weenies.
-fn calc_average_patch_stats(
+/// Calculate output statistics for *all* patches. Survival chance will be
+/// average across all patches (including disease-free, which have a chance of
+/// 100%), and yield/XP will be totaled across all patches to provide per-run
+/// expected output.
+fn calc_total_patch_stats(
     farming_level: u32,
     herb_cfg: &FarmingHerbsConfig,
     herb: Herb,
 ) -> PatchStats {
-    herb_cfg
-        .patches
-        .iter()
-        .map(|patch| patch.calc_patch_stats(farming_level, herb_cfg, herb))
-        .sum::<PatchStats>()
-        / (herb_cfg.patches.len() as f64)
+    let mut total_stats = herb_cfg.patches.iter().fold(
+        PatchStats {
+            survival_chance: 0.0,
+            expected_yield: 0.0,
+            expected_xp: 0.0,
+        },
+        |mut acc, patch| {
+            let patch_stats =
+                patch.calc_patch_stats(farming_level, herb_cfg, herb);
+            // We aggregate survival chance here, then we'll turn it into an
+            // average below
+            acc.survival_chance += patch_stats.survival_chance;
+            // Yield and XP should be pure totals
+            acc.expected_yield += patch_stats.expected_yield;
+            acc.expected_xp += patch_stats.expected_xp;
+            acc
+        },
+    );
+    // Convert survival chance from total => average
+    total_stats.survival_chance /= herb_cfg.patches.len() as f64;
+    total_stats
 }

@@ -4,7 +4,7 @@ use crate::{
     config::FarmingHerbsConfig,
     utils::{diary::AchievementDiaryLevel, fmt, math},
 };
-use derive_more::{Add, Display, Div, Sum};
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use strum::{EnumIter, IntoStaticStr};
@@ -350,7 +350,7 @@ impl Display for HerbPatch {
 }
 
 /// Statistics on a particular herb+patch combo.
-#[derive(Copy, Clone, Debug, Add, Div, Sum)]
+#[derive(Copy, Clone, Debug)]
 pub struct PatchStats {
     /// The chance of a patch getting to fully growth, i.e. the opposite of the
     /// chance of it dying of disease.
@@ -420,7 +420,9 @@ impl Display for FarmingHerbsConfig {
         )?;
         writeln!(f, "Compost: {}", fmt::fmt_option(self.compost))?;
         writeln!(f, "Anima plant: {}", fmt::fmt_option(self.anima_plant))?;
-        writeln!(
+        // Last line should be just a `write!` so we don't have a dangling
+        // newline at the end
+        write!(
             f,
             "Patches: {}",
             self.patches
