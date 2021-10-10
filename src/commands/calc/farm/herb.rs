@@ -6,8 +6,11 @@ use crate::{
         context::CommandContext,
         farm::{Herb, PatchStats},
         fmt,
+        hiscore::HiscorePlayer,
+        skill::Skill,
     },
 };
+use anyhow::Context;
 use prettytable::{cell, row, Table};
 use structopt::StructOpt;
 use strum::IntoEnumIterator;
@@ -21,9 +24,15 @@ use strum::IntoEnumIterator;
 // on the Hosidius patch).
 #[derive(Debug, StructOpt)]
 pub struct CalcFarmHerbCommand {
-    /// Farming level (affects crop yield)
+    /// Farming level (affects crop yield). If provided, this will override
+    /// hiscores lookup for a player.
     #[structopt(short = "l", long = "lvl")]
-    farming_level: Option<u32>,
+    farming_level: Option<usize>,
+
+    /// The player to pull a farming level from. If not given, will use the
+    /// default player in the config.
+    #[structopt(short, long)]
+    player: Vec<String>,
 }
 
 impl Command for CalcFarmHerbCommand {
@@ -40,9 +49,30 @@ impl Command for CalcFarmHerbCommand {
             .into());
         }
 
-        // Calculate expected results for each patch
-        // TODO grab farming level from hiscores when possible
-        let farming_level = self.farming_level.unwrap_or(1);
+        // Look for farming level, in this order:
+        // 1. --lvl param
+        // 2. --player param
+        // 3. Default player in config
+        // 4. Freak out
+        let farming_level = match self {
+            Self {
+                farming_level: Some(farming_level),
+                ..
+            } => *farming_level,
+            Self {
+                farming_level: None,
+                player,
+            } => {
+                // This error message isn't the best, but hopefully it gets the
+                // point across
+                let username = context
+                    .config()
+                    .get_username(player)
+                    .with_context(|| "Cannot load farming level")?;
+                let player = HiscorePlayer::load(&username)?;
+                player.skill(Skill::Farming).level
+            }
+        };
 
         // Print a little prelude to give the user some info
         println!("Farming level: {}", farming_level);
@@ -56,6 +86,7 @@ impl Command for CalcFarmHerbCommand {
         );
         table.set_titles(row!["Herb", r->"Survival Chance", r->"Yield per Run", r->"XP per Run"]);
 
+        // Calculate expected results for each patch
         for herb in Herb::iter() {
             let herb_stats =
                 calc_total_patch_stats(farming_level, herb_cfg, herb);
@@ -78,7 +109,7 @@ impl Command for CalcFarmHerbCommand {
 /// 100%), and yield/XP will be totaled across all patches to provide per-run
 /// expected output.
 fn calc_total_patch_stats(
-    farming_level: u32,
+    farming_level: usize,
     herb_cfg: &FarmingHerbsConfig,
     herb: Herb,
 ) -> PatchStats {
