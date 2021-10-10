@@ -1,6 +1,11 @@
 #![deny(clippy::all)]
 #![cfg_attr(nightly, feature(backtrace))]
 
+mod commands;
+mod config;
+mod error;
+mod utils;
+
 use crate::{
     commands::{
         CalcCommand, Command, CommandType, HiscoreCommand, PingCommand,
@@ -11,11 +16,6 @@ use crate::{
 use commands::ConfigCommand;
 use std::process;
 use structopt::StructOpt;
-
-mod commands;
-mod config;
-mod error;
-mod utils;
 
 /// All top-level CLI commands.
 #[derive(Debug, StructOpt)]
