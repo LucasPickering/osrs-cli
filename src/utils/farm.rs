@@ -47,7 +47,7 @@ pub enum Herb {
     Kwuarm,
     Snapdragon,
     Cadantine,
-    Lantadyma,
+    Lantadyme,
     #[display(fmt = "Dwarf weed")]
     Dwarf,
     Torstol,
@@ -73,7 +73,7 @@ impl Herb {
             Self::Kwuarm => (54.0, 80.0),
             Self::Snapdragon => (57.0, 80.0),
             Self::Cadantine => (60.0, 80.0),
-            Self::Lantadyma => (64.0, 80.0),
+            Self::Lantadyme => (64.0, 80.0),
             Self::Dwarf => (67.0, 80.0),
             Self::Torstol => (71.0, 80.0),
         }
@@ -94,7 +94,7 @@ impl Herb {
             Self::Kwuarm => 69.0,
             Self::Snapdragon => 87.5,
             Self::Cadantine => 106.5,
-            Self::Lantadyma => 134.5,
+            Self::Lantadyme => 134.5,
             Self::Dwarf => 170.5,
             Self::Torstol => 199.5,
         }
@@ -115,7 +115,7 @@ impl Herb {
             Self::Kwuarm => 78.0,
             Self::Snapdragon => 98.5,
             Self::Cadantine => 120.0,
-            Self::Lantadyma => 151.5,
+            Self::Lantadyme => 151.5,
             Self::Dwarf => 192.0,
             Self::Torstol => 224.5,
         }
@@ -195,7 +195,7 @@ impl HerbPatch {
             | Self::Hosidius {
                 kourend_diary: Some(diary),
                 ..
-            } if diary >= AchievementDiaryLevel::Medium => 0.05,
+            } if diary >= AchievementDiaryLevel::Hard => 0.05,
 
             _ => 0.0,
         }
@@ -282,7 +282,7 @@ impl HerbPatch {
         herb: Herb,
     ) -> f64 {
         let item_bonus = herb_cfg.calc_item_chance_to_save();
-        let diary_bonus = self.chance_to_save_bonus() as f64 / 100.0;
+        let diary_bonus = self.chance_to_save_bonus();
         let attas_bonus = match herb_cfg.anima_plant {
             Some(AnimaPlant::Attas) => 0.05,
             _ => 0.0,
@@ -291,18 +291,18 @@ impl HerbPatch {
         let (chance1, chance99) = herb.chance_to_save();
 
         // This comes straight from the wiki, it's a lot easier to read in
-        // their formatting. The formatted formula doesn't mention anything
-        // about the `floor` though, but it's in the calculator source
+        // their formatting (link above). The formatted formula doesn't mention
+        // anything about the `floor`s though, but it's in the calculator source
         // https://oldschool.runescape.wiki/w/Calculator:Template/Farming/Herbs2?action=edit
-        (f64::floor((chance1 * (99.0 - farming_level as f64) / 98.0)
+        f64::floor(
+            f64::floor(f64::floor((chance1 * (99.0 - farming_level as f64) / 98.0)
             + (chance99 * (farming_level as f64 - 1.0) / 98.0))
-                * (1.0 + item_bonus)
-                * (1.0 + diary_bonus)
+                * (1.0 + item_bonus))
                 // Attas doesn't appear in the formula on the page above, but
                 // it's also in the calculator source (see link above)
-                * (1.0 + attas_bonus)
-            + 1.0)
-            / 256.0
+                * (1.0 + diary_bonus + attas_bonus)
+                + 1.0,
+        ) / 256.0
     }
 
     /// Calculate the expected yield of this patch, **assuming it is fully

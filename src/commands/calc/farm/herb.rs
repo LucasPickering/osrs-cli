@@ -13,9 +13,12 @@ use structopt::StructOpt;
 use strum::IntoEnumIterator;
 
 // TODO add command for setting herb config more easily
-// TODO test all edge cases against the wiki calculator
 
 /// Calculate yield, XP, and profit related to farming herbs
+// Note: there are slight differences between this and the calculator on the
+// wiki, I ran through all the scenarios and I think the differences are all
+// either negligible or the fault of the wiki (e.g. it doesn't handle the +5%
+// on the Hosidius patch).
 #[derive(Debug, StructOpt)]
 pub struct CalcFarmHerbCommand {
     /// Farming level (affects crop yield)
@@ -60,7 +63,7 @@ impl Command for CalcFarmHerbCommand {
             table.add_row(row![
                 herb.to_string(),
                 r->fmt::fmt_probability(herb_stats.survival_chance),
-                r->format!("{:.2}", herb_stats.expected_yield),
+                r->format!("{:.3}", herb_stats.expected_yield),
                 r->format!("{:.1}", herb_stats.expected_xp),
             ]);
         }
