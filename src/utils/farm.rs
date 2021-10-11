@@ -2,7 +2,7 @@
 
 use crate::{
     config::FarmingHerbsConfig,
-    utils::{diary::AchievementDiaryLevel, fmt, math},
+    utils::{diary::AchievementDiaryLevel, fmt, item, math, prices::Item},
 };
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
@@ -15,6 +15,17 @@ pub enum Compost {
     Normal,
     Supercompost,
     Ultracompost,
+}
+
+impl Compost {
+    /// Get the item ID for this compost type.
+    pub fn item_id(self) -> usize {
+        match self {
+            Self::Normal => item::ITEM_ID_COMPOST,
+            Self::Supercompost => item::ITEM_ID_SUPERCOMPOST,
+            Self::Ultracompost => item::ITEM_ID_ULTRACOMPOST,
+        }
+    }
 }
 
 /// A type of plant that has global impact on how other crops grow
@@ -54,6 +65,49 @@ pub enum Herb {
 }
 
 impl Herb {
+    /// Get the ID of the grimy herb item associated with this herb
+    pub fn grimy_herb_item_id(self) -> usize {
+        match self {
+            Self::Guam => item::ITEM_ID_GRIMY_GUAM_LEAF,
+            Self::Marrentill => item::ITEM_ID_GRIMY_MARRENTILL,
+            Self::Tarromin => item::ITEM_ID_GRIMY_TARROMIN,
+            Self::Harralander => item::ITEM_ID_GRIMY_HARRALANDER,
+            // Goutweed doesn't have a grimy version so we just use the regular
+            Self::Goutweed => item::ITEM_ID_GOUTWEED,
+            Self::Ranarr => item::ITEM_ID_GRIMY_RANARR_WEED,
+            Self::Toadflax => item::ITEM_ID_GRIMY_TOADFLAX,
+            Self::Irit => item::ITEM_ID_GRIMY_IRIT,
+            Self::Avantoe => item::ITEM_ID_GRIMY_AVANTOE,
+            Self::Kwuarm => item::ITEM_ID_GRIMY_KWUARM,
+            Self::Snapdragon => item::ITEM_ID_GRIMY_SNAPDRAGON,
+            Self::Cadantine => item::ITEM_ID_GRIMY_CADANTINE,
+            Self::Lantadyme => item::ITEM_ID_GRIMY_LANTADYME,
+            Self::Dwarf => item::ITEM_ID_GRIMY_DWARF_WEED,
+            Self::Torstol => item::ITEM_ID_GRIMY_TORSTOL,
+        }
+    }
+
+    /// Get the ID of the seed item associated with this herb
+    pub fn seed_item_id(self) -> usize {
+        match self {
+            Self::Guam => item::ITEM_ID_GUAM_SEED,
+            Self::Marrentill => item::ITEM_ID_MARRENTILL_SEED,
+            Self::Tarromin => item::ITEM_ID_TARROMIN_SEED,
+            Self::Harralander => item::ITEM_ID_HARRALANDER_SEED,
+            Self::Goutweed => item::ITEM_ID_GOUT_TUBER,
+            Self::Ranarr => item::ITEM_ID_RANARR_SEED,
+            Self::Toadflax => item::ITEM_ID_TOADFLAX_SEED,
+            Self::Irit => item::ITEM_ID_IRIT_SEED,
+            Self::Avantoe => item::ITEM_ID_AVANTOE_SEED,
+            Self::Kwuarm => item::ITEM_ID_KWUARM_SEED,
+            Self::Snapdragon => item::ITEM_ID_SNAPDRAGON_SEED,
+            Self::Cadantine => item::ITEM_ID_CADANTINE_SEED,
+            Self::Lantadyme => item::ITEM_ID_LANTADYME_SEED,
+            Self::Dwarf => item::ITEM_ID_DWARF_WEED_SEED,
+            Self::Torstol => item::ITEM_ID_TORSTOL_SEED,
+        }
+    }
+
     /// Get the "chance to save" for an herb at level 1 and level 99. All other
     /// level's values can be linearly interpolated from there.
     ///
@@ -216,12 +270,14 @@ impl HerbPatch {
     /// Calculate stats (survival chance, yield, etc.) for this patch given
     /// some info on the player/herb. Yield and XP values here **do** take into
     /// account the survival chance.
+    ///
+    /// Fails iff a request for item price data fails.
     pub fn calc_patch_stats(
         self,
         farming_level: usize,
         herb_cfg: &FarmingHerbsConfig,
         herb: Herb,
-    ) -> PatchStats {
+    ) -> anyhow::Result<PatchStats> {
         let survival_chance = self.calc_survival_chance(herb_cfg);
         // IMPORTANT: We multiply by survival chance here to account for lost
         // patches.
@@ -231,12 +287,19 @@ impl HerbPatch {
         let expected_xp = herb_cfg.compost_xp()
             + herb.xp_per_plant()
             + herb.xp_per_harvest() * expected_yield;
+        // Calculate price-related stats. We grab all 3 of these fields at once
+        // so we don't have to do a bunch of spaghetti plumbing
+        let price_stats =
+            self.calc_price_stats(herb_cfg, expected_yield, herb)?;
 
-        PatchStats {
+        Ok(PatchStats {
             survival_chance,
             expected_yield,
             expected_xp,
-        }
+            seed_price: price_stats.seed_price,
+            grimy_herb_price: price_stats.grimy_herb_price,
+            expected_profit: price_stats.expected_profit,
+        })
     }
 
     /// The odds that an herb growing in this patch survives from seed to
@@ -319,6 +382,61 @@ impl HerbPatch {
         herb_cfg.harvest_lives() as f64
             / (1.0 - self.calc_chance_to_save(herb_cfg, farming_level, herb))
     }
+
+    /// Calculate price and profit stats for this patch. Returned stats are
+    /// stored in a helper struct for ease of use (as opposed to a tuple).
+    ///
+    /// Fails iff a request for item price data fails.
+    fn calc_price_stats(
+        self,
+        herb_cfg: &FarmingHerbsConfig,
+        expected_yield: f64,
+        herb: Herb,
+    ) -> anyhow::Result<PriceStats> {
+        // Either of these prices could be None if there is no trade data
+        let grimy_herb_price =
+            Item::latest_high_price(herb.grimy_herb_item_id())?;
+        let seed_price = Item::latest_high_price(herb.seed_item_id())?;
+
+        let compost_price = Self::calc_compost_price(herb_cfg)?;
+
+        // Missing prices should be treated as 0 here
+        let revenue = (grimy_herb_price.unwrap_or_default() as f64
+            * expected_yield) as isize;
+        let cost = (seed_price.unwrap_or_default() + compost_price) as isize;
+        let expected_profit = revenue - cost;
+
+        Ok(PriceStats {
+            seed_price,
+            grimy_herb_price,
+            expected_profit,
+        })
+    }
+
+    /// Calculate the price of one instance of compost for this patch. This
+    /// accounts for the price reduction when using a bottomless bucket.
+    ///
+    /// Fails iff the request for compost item price fails.
+    fn calc_compost_price(
+        herb_cfg: &FarmingHerbsConfig,
+    ) -> anyhow::Result<usize> {
+        let base_cost = herb_cfg
+            .compost
+            .map(|compost| Item::latest_high_price(compost.item_id()))
+            // Option<Result<Option<_>>> -> Result<Option<Option<_>>>
+            .transpose()?
+            // Option<Option<_>> -> Option<_>
+            .flatten()
+            // If not using compost, the cost is 0
+            .unwrap_or_default();
+
+        // Bottomless bucket doubles compost, so cost is halved
+        Ok(if herb_cfg.bottomless_bucket {
+            base_cost / 2
+        } else {
+            base_cost
+        })
+    }
 }
 
 impl Display for HerbPatch {
@@ -349,8 +467,9 @@ impl Display for HerbPatch {
     }
 }
 
-/// Statistics on a particular herb+patch combo.
-#[derive(Copy, Clone, Debug)]
+/// Statistics on a particular herb+patch combo. This can also represent
+/// aggregate stats for multiple patches.
+#[derive(Copy, Clone, Debug, Default)]
 pub struct PatchStats {
     /// The chance of a patch getting to fully growth, i.e. the opposite of the
     /// chance of it dying of disease.
@@ -362,6 +481,23 @@ pub struct PatchStats {
     /// Expected amount of XP gained from planting **and** harvesting it,
     /// **including** the XP for applying compost.
     pub expected_xp: f64,
+    /// The GE cost of the seed planted in this patch. `None` if there is no
+    /// trade data for it.
+    pub seed_price: Option<usize>,
+    /// The GE cost of the grimy herb grown in this patch. `None` if there is
+    /// no trade data for it.
+    pub grimy_herb_price: Option<usize>,
+    /// The amount of mony we expect to _profit_ from this patch. This includes
+    /// the cost of the seed and compost, value of the grown herbs, and disease
+    /// rate.
+    pub expected_profit: isize,
+}
+
+/// Helper struct for holding price data related to an herb patch.
+struct PriceStats {
+    seed_price: Option<usize>,
+    grimy_herb_price: Option<usize>,
+    expected_profit: isize,
 }
 
 impl FarmingHerbsConfig {

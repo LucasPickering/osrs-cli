@@ -206,6 +206,7 @@ fn load_hiscore_items(username: &str) -> anyhow::Result<Vec<HiscoreItem>> {
         .call()?
         .into_string()?;
 
+    // Parse the response as a CSV
     let mut rdr = ReaderBuilder::new()
         .has_headers(false)
         .flexible(true)
