@@ -3,5 +3,7 @@ pub mod diary;
 pub mod farm;
 pub mod fmt;
 pub mod hiscore;
+pub mod item;
 pub mod math;
+pub mod prices;
 pub mod skill;

@@ -15,7 +15,7 @@ use prettytable::{cell, row, Table};
 use structopt::StructOpt;
 use strum::IntoEnumIterator;
 
-// TODO add command for setting herb config more easily
+// TODO add command for getting/setting herb config more easily
 
 /// Calculate yield, XP, and profit related to farming herbs
 // Note: there are slight differences between this and the calculator on the
@@ -84,18 +84,30 @@ impl Command for CalcFarmHerbCommand {
         table.set_format(
             *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
         );
-        table.set_titles(row!["Herb", r->"Survival Chance", r->"Yield per Run", r->"XP per Run"]);
+        table.set_titles(row![
+            "Herb",
+            r->"Survival Chance",
+            r->"Yield/Run",
+            r->"XP/Run",
+            r->"Seed Price",
+            r->"Herb Price",
+            r->"Profit/Run",
+        ]);
 
         // Calculate expected results for each patch
         for herb in Herb::iter() {
             let herb_stats =
-                calc_total_patch_stats(farming_level, herb_cfg, herb);
-            // TODO include price data here
+                calc_total_patch_stats(farming_level, herb_cfg, herb)?;
+
+            // TODO add row highlighting for best rows by profit
             table.add_row(row![
                 herb.to_string(),
                 r->fmt::fmt_probability(herb_stats.survival_chance),
                 r->format!("{:.3}", herb_stats.expected_yield),
                 r->format!("{:.1}", herb_stats.expected_xp),
+                r->fmt::fmt_price(herb_stats.seed_price),
+                r->fmt::fmt_price(herb_stats.grimy_herb_price),
+                r->fmt::fmt_int(&herb_stats.expected_profit),
             ]);
         }
 
@@ -106,32 +118,35 @@ impl Command for CalcFarmHerbCommand {
 
 /// Calculate output statistics for *all* patches. Survival chance will be
 /// average across all patches (including disease-free, which have a chance of
-/// 100%), and yield/XP will be totaled across all patches to provide per-run
-/// expected output.
+/// 100%), and yield/XP/profit will be totaled across all patches to provide
+/// per-run expected output.
 fn calc_total_patch_stats(
     farming_level: usize,
     herb_cfg: &FarmingHerbsConfig,
     herb: Herb,
-) -> PatchStats {
-    let mut total_stats = herb_cfg.patches.iter().fold(
-        PatchStats {
-            survival_chance: 0.0,
-            expected_yield: 0.0,
-            expected_xp: 0.0,
-        },
-        |mut acc, patch| {
-            let patch_stats =
-                patch.calc_patch_stats(farming_level, herb_cfg, herb);
-            // We aggregate survival chance here, then we'll turn it into an
-            // average below
-            acc.survival_chance += patch_stats.survival_chance;
-            // Yield and XP should be pure totals
-            acc.expected_yield += patch_stats.expected_yield;
-            acc.expected_xp += patch_stats.expected_xp;
-            acc
-        },
-    );
+) -> anyhow::Result<PatchStats> {
+    let mut total_stats = PatchStats::default();
+
+    for patch in &herb_cfg.patches {
+        let patch_stats =
+            patch.calc_patch_stats(farming_level, herb_cfg, herb)?;
+
+        // We aggregate survival chance here, then we'll turn it into an
+        // average below
+        total_stats.survival_chance += patch_stats.survival_chance;
+
+        // Prices should be the same across all patches since they use the same
+        // herb
+        total_stats.seed_price = patch_stats.seed_price;
+        total_stats.grimy_herb_price = patch_stats.grimy_herb_price;
+
+        // Yield and XP should be pure totals
+        total_stats.expected_yield += patch_stats.expected_yield;
+        total_stats.expected_xp += patch_stats.expected_xp;
+        total_stats.expected_profit += patch_stats.expected_profit;
+    }
+
     // Convert survival chance from total => average
     total_stats.survival_chance /= herb_cfg.patches.len() as f64;
-    total_stats
+    Ok(total_stats)
 }

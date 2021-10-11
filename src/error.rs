@@ -5,10 +5,13 @@ use thiserror::Error;
 pub enum OsrsError {
     #[error("Argument error: {0}")]
     ArgsError(String),
+
     #[error("Unknown skill: {0}")]
     UnknownSkill(String),
+
     #[error("Invalid level. Must be between 1 and 127, got: {0}")]
     InvalidLevel(usize),
+
     #[error("Missing configuration for field `{key}`. {message}")]
     Unconfigured { key: String, message: String },
 }
