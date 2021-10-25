@@ -4,7 +4,7 @@ use crate::{
 };
 use anyhow::Context;
 use figment::{
-    providers::{Format, Json},
+    providers::{Format, Json, Serialized},
     Figment,
 };
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,7 @@ impl OsrsConfig {
     /// Load config data from the pre-defined config file path. Any missing
     /// values will be populated with defaults.
     pub fn load() -> anyhow::Result<Self> {
-        Figment::new()
+        Figment::from(Serialized::defaults(OsrsConfig::default()))
             .join(Json::file(CONFIG_FILE_PATH))
             .extract()
             .with_context(|| {
