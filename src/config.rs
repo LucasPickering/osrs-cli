@@ -69,7 +69,7 @@ impl OsrsConfig {
     pub fn load() -> anyhow::Result<Self> {
         let path = Self::path();
         Figment::from(Serialized::defaults(OsrsConfig::default()))
-            .join(Json::file(&path))
+            .merge(Json::file(&path))
             .extract()
             .with_context(|| {
                 format!("Error loading config from file `{}`", path.display())
