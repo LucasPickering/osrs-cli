@@ -214,7 +214,7 @@ fn load_hiscore_items(username: &str) -> anyhow::Result<Vec<HiscoreItem>> {
         // Iterator magic to convert Vec<Result> -> Result<Vec>
         // If any item fails, this whole thing will fail
         .collect::<Result<Vec<HiscoreItem>, csv::Error>>()
-        .with_context(|| "Error parsing hiscore data")
+        .context("Error parsing hiscore data")
 }
 
 #[cfg(test)]
