@@ -131,7 +131,6 @@ pub struct CalcDropCommand {
     #[structopt(short, long, parse(try_from_str = parse_probability))]
     probability: f64,
     /// The number of chances for your drop, e.g. kill count or harvest count.
-    // TODO figure out a way to define arg aliases here
     #[structopt(short = "n", long)]
     iterations: usize,
     /// The target number of successes. Use just a number for an exact value,

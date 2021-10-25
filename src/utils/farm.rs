@@ -10,7 +10,9 @@ use std::fmt::Display;
 use strum::{EnumIter, IntoStaticStr};
 
 /// Different types of compost that can be applied to a farming patch
-#[derive(Copy, Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, Display, PartialEq, EnumIter, Serialize, Deserialize,
+)]
 pub enum Compost {
     Normal,
     Supercompost,
@@ -30,7 +32,9 @@ impl Compost {
 
 /// A type of plant that has global impact on how other crops grow
 /// https://oldschool.runescape.wiki/w/Anima_seed
-#[derive(Copy, Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, Display, PartialEq, EnumIter, Serialize, Deserialize,
+)]
 pub enum AnimaPlant {
     /// https://oldschool.runescape.wiki/w/Kronos_seed
     Kronos,
@@ -176,66 +180,95 @@ impl Herb {
     }
 }
 
-/// An herb farming patch. Each patch has unique fields that encompass the
-/// different buffs that are applicable.
+/// An herb farming patch.
 #[derive(
-    Copy, Clone, Debug, PartialEq, IntoStaticStr, Serialize, Deserialize,
+    Copy,
+    Clone,
+    Debug,
+    Display,
+    PartialEq,
+    EnumIter,
+    IntoStaticStr,
+    Serialize,
+    Deserialize,
 )]
-#[serde(tag = "name")]
 pub enum HerbPatch {
     Ardougne,
-    Catherby {
-        /// Achievement diary gives a yield buff via increased chance to save a
-        /// harvest life.
-        /// Medium => +5%
-        /// Hard => +10%
-        /// Elite => +15%
-        kandarin_diary: Option<AchievementDiaryLevel>,
-    },
-    Falador {
-        /// Medium => +10% XP
-        falador_diary: Option<AchievementDiaryLevel>,
-    },
-    FarmingGuild {
-        /// Hard => +5% chance to save a harvest life
-        kourend_diary: Option<AchievementDiaryLevel>,
-    },
+    Catherby,
+    Falador,
+    #[display(fmt = "Farming Guild")]
+    FarmingGuild,
+    #[display(fmt = "Harmony Island")]
     HarmonyIsland,
-    Hosidius {
-        /// 50%+ Hosidius => disease-free
-        fifty_favor: bool,
-        /// Hard => +5% chance to save a harvest life
-        kourend_diary: Option<AchievementDiaryLevel>,
-    },
+    Hosidius,
+    #[display(fmt = "Port Phasmatys")]
     PortPhasmatys,
+    #[display(fmt = "Troll Stronghold")]
     TrollStronghold,
     Weiss,
 }
 
 impl HerbPatch {
-    /// Is this patch 100% certified disease-free?
-    pub fn disease_free(self) -> bool {
-        matches!(
-            self,
-            Self::TrollStronghold
-                | Self::Weiss
-                | Self::Hosidius {
-                    fifty_favor: true,
-                    ..
-                }
-        )
+    /// Get a user-friendly name for this patch
+    pub fn name(self) -> &'static str {
+        self.into()
+    }
+
+    /// Get a descriptive string that includes this patch's name and all of its
+    /// buffs
+    pub fn description(self, herb_cfg: &FarmingHerbsConfig) -> String {
+        // Start with the patch name
+        let mut description = self.name().to_owned();
+
+        let disease_free = self.disease_free(herb_cfg);
+        let chance_to_save_bonus = self.chance_to_save_bonus(herb_cfg);
+        let xp_bonus = self.xp_bonus(herb_cfg);
+
+        // Apply modifiers
+        let mut modifiers = Vec::new();
+        if disease_free {
+            modifiers.push("disease-free".to_owned());
+        }
+        if chance_to_save_bonus > 0.0 {
+            modifiers
+                .push(format!("{:+}% yield", chance_to_save_bonus * 100.0));
+        }
+        if xp_bonus > 0.0 {
+            modifiers.push(format!("{:+}% XP", xp_bonus * 100.0));
+        }
+
+        if !modifiers.is_empty() {
+            description.push_str(&format!(" ({})", modifiers.join(", ")));
+        }
+
+        description
+    }
+
+    /// Is this patch 100% certified disease-free? This can depend on patch
+    /// modifiers so we need the config available.
+    pub fn disease_free(self, herb_cfg: &FarmingHerbsConfig) -> bool {
+        match self {
+            Self::TrollStronghold | Self::Weiss => true,
+            Self::Hosidius => herb_cfg.hosidius_fifty_favor,
+            _ => false,
+        }
     }
 
     /// Calculate the "chance to save a life" that this patch provides. This
-    /// will stack with other bonuses (magic secateurs, etc.).
+    /// will stack with other bonuses (magic secateurs, etc.). This can depend
+    /// on patch modifiers so we need the config available.
     ///
     /// See https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
-    pub fn chance_to_save_bonus(self) -> f64 {
-        match self {
+    pub fn chance_to_save_bonus(self, herb_cfg: &FarmingHerbsConfig) -> f64 {
+        match (self, herb_cfg) {
             // Bonus scales based on tiers completed
-            Self::Catherby {
-                kandarin_diary: Some(diary),
-            } => match diary {
+            (
+                Self::Catherby,
+                FarmingHerbsConfig {
+                    kandarin_diary: Some(diary),
+                    ..
+                },
+            ) => match diary {
                 AchievementDiaryLevel::Easy => 0.0,
                 AchievementDiaryLevel::Medium => 0.05,
                 AchievementDiaryLevel::Hard => 0.10,
@@ -243,26 +276,31 @@ impl HerbPatch {
             },
 
             // Both get +5% from Kourend medium
-            Self::FarmingGuild {
-                kourend_diary: Some(diary),
-            }
-            | Self::Hosidius {
-                kourend_diary: Some(diary),
-                ..
-            } if diary >= AchievementDiaryLevel::Hard => 0.05,
+            (
+                Self::FarmingGuild | Self::Hosidius,
+                FarmingHerbsConfig {
+                    kourend_diary: Some(diary),
+                    ..
+                },
+            ) if *diary >= AchievementDiaryLevel::Hard => 0.05,
 
             _ => 0.0,
         }
     }
 
     /// Get the XP bonus that this patch provides for **all actions** performed
-    /// on the patch.
-    pub fn xp_bonus(self) -> f64 {
-        match self {
+    /// on the patch. This can depend on patch modifiers so we need the config
+    /// available.
+    pub fn xp_bonus(self, herb_cfg: &FarmingHerbsConfig) -> f64 {
+        match (self, herb_cfg) {
             // Falador Medium grants a +10% XP bonus
-            Self::Falador {
-                falador_diary: Some(diary),
-            } if diary >= AchievementDiaryLevel::Medium => 0.10,
+            (
+                Self::Falador,
+                FarmingHerbsConfig {
+                    falador_diary: Some(diary),
+                    ..
+                },
+            ) if *diary >= AchievementDiaryLevel::Medium => 0.10,
             _ => 0.0,
         }
     }
@@ -306,7 +344,7 @@ impl HerbPatch {
     /// adulthood, assuming it is not monitored at all.
     fn calc_survival_chance(self, herb_cfg: &FarmingHerbsConfig) -> f64 {
         // https://oldschool.runescape.wiki/w/Disease_(Farming)#Reducing_disease_risk
-        let disease_chance_per_cycle = if self.disease_free() {
+        let disease_chance_per_cycle = if self.disease_free(herb_cfg) {
             0.0
         } else {
             // Base chance is based on compost
@@ -345,7 +383,7 @@ impl HerbPatch {
         herb: Herb,
     ) -> f64 {
         let item_bonus = herb_cfg.calc_item_chance_to_save();
-        let diary_bonus = self.chance_to_save_bonus();
+        let diary_bonus = self.chance_to_save_bonus(herb_cfg);
         let attas_bonus = match herb_cfg.anima_plant {
             Some(AnimaPlant::Attas) => 0.05,
             _ => 0.0,
@@ -436,34 +474,6 @@ impl HerbPatch {
         } else {
             base_cost
         })
-    }
-}
-
-impl Display for HerbPatch {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", Into::<&str>::into(self))?;
-
-        let disease_free = self.disease_free();
-        let chance_to_save_bonus = self.chance_to_save_bonus();
-        let xp_bonus = self.xp_bonus();
-
-        let mut modifiers = Vec::new();
-        if disease_free {
-            modifiers.push("disease-free".to_owned());
-        }
-        if chance_to_save_bonus > 0.0 {
-            modifiers
-                .push(format!("{:+}% yield", chance_to_save_bonus * 100.0));
-        }
-        if xp_bonus > 0.0 {
-            modifiers.push(format!("{:+}% XP", xp_bonus * 100.0));
-        }
-
-        if !modifiers.is_empty() {
-            write!(f, " ({})", modifiers.join(", "))?;
-        }
-
-        Ok(())
     }
 }
 
@@ -563,7 +573,7 @@ impl Display for FarmingHerbsConfig {
             "Patches: {}",
             self.patches
                 .iter()
-                .map(HerbPatch::to_string)
+                .map(|patch| patch.description(self))
                 .collect::<Vec<_>>()
                 .join(", ")
         )?;

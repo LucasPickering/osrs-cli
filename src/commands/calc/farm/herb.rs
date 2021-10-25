@@ -15,9 +15,9 @@ use prettytable::{cell, row, Table};
 use structopt::StructOpt;
 use strum::IntoEnumIterator;
 
-// TODO add command for getting/setting herb config more easily
-
-/// Calculate yield, XP, and profit related to farming herbs
+/// Calculate yield, XP, and profit related to farming herbs. Configure your
+/// herb patches, farming buffs, etc. with the `config set-herb` subcommand,
+/// then use this to view statistics on individual herb types.
 // Note: there are slight differences between this and the calculator on the
 // wiki, I ran through all the scenarios and I think the differences are all
 // either negligible or the fault of the wiki (e.g. it doesn't handle the +5%
@@ -128,6 +128,10 @@ fn calc_total_patch_stats(
     let mut total_stats = PatchStats::default();
 
     for patch in &herb_cfg.patches {
+        // Map the patch name + the modifiers for all patches into a combined
+        // HerbPatch value, which picks out only the relevant modifiers. This
+        // makes it easy to pass around the modifier context that we need, and
+        // nothing more.
         let patch_stats =
             patch.calc_patch_stats(farming_level, herb_cfg, herb)?;
 
