@@ -1,7 +1,7 @@
 use crate::{
     commands::Command, config::OsrsConfig, utils::context::CommandContext,
 };
-use figment::Figment;
+use figment::{providers::Serialized, Figment};
 use structopt::StructOpt;
 
 /// Set a configuration value
@@ -17,10 +17,10 @@ impl Command for ConfigSetCommand {
     fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
         // Update the given field in the config
         let current_cfg_value = context.config();
-        let new_cfg_value: OsrsConfig = Figment::new()
-            .join(("", current_cfg_value))
-            .merge((&self.key, self.value.as_str()))
-            .extract()?;
+        let new_cfg_value: OsrsConfig =
+            Figment::from(Serialized::defaults(current_cfg_value))
+                .merge((&self.key, self.value.as_str()))
+                .extract()?;
 
         // If the user didn't make any changes, then don't do anything. This
         // is mostly to prevent a success message when they put in a bogus key.

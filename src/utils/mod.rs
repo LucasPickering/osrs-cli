@@ -1,3 +1,4 @@
+pub mod console;
 pub mod context;
 pub mod diary;
 pub mod farm;
