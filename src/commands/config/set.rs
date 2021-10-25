@@ -1,10 +1,7 @@
 use crate::{
-    commands::Command,
-    config::{OsrsConfig, CONFIG_FILE_PATH},
-    utils::context::CommandContext,
+    commands::Command, config::OsrsConfig, utils::context::CommandContext,
 };
 use figment::Figment;
-use std::fs::OpenOptions;
 use structopt::StructOpt;
 
 /// Set a configuration value
@@ -28,15 +25,7 @@ impl Command for ConfigSetCommand {
         // If the user didn't make any changes, then don't do anything. This
         // is mostly to prevent a success message when they put in a bogus key.
         if &new_cfg_value != current_cfg_value {
-            // Write the new cfg value to the cfg file
-            let file = OpenOptions::new()
-                .read(false)
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(CONFIG_FILE_PATH)?;
-            serde_json::to_writer_pretty(&file, &new_cfg_value)?;
-
+            new_cfg_value.save()?;
             println!("Set {} = {}", self.key, self.value);
         } else {
             println!(

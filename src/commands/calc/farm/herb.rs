@@ -68,7 +68,7 @@ impl Command for CalcFarmHerbCommand {
                 let username = context
                     .config()
                     .get_username(player)
-                    .with_context(|| "Cannot load farming level")?;
+                    .context("Error loading farming level")?;
                 let player = HiscorePlayer::load(&username)?;
                 player.skill(Skill::Farming).level
             }
