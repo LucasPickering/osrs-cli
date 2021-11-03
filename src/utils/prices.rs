@@ -1,5 +1,7 @@
-//! Utilities for loading item price data from the [OSRS Wiki's Real-time Prices API](https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices).
+//! Utilities for loading item price data from the
+//! [OSRS Wiki's Real-time Prices API](https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices).
 
+use crate::utils::http;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::RwLock};
@@ -19,9 +21,6 @@ lazy_static! {
     /// sufficient. This makes it a bit more future-proof though.
     static ref ITEM_PRICE_CACHE: RwLock<Option<HashMap<usize, Item>>> = RwLock::new(None);
 }
-
-// TODO set descriptive User-Agent for requests in here, as requested in the
-// API docs
 
 /// Response for the `/latest` endpoint of the price API
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -70,7 +69,7 @@ impl Item {
             // No cache, grab the latest price data from the API
             None => {
                 let response: ItemPriceResponse =
-                    ureq::get(GE_URL).call()?.into_json()?;
+                    http::agent().get(GE_URL).call()?.into_json()?;
                 // Grab this item out first, since we're about to do a move
                 let item = response.data.get(&item_id).copied();
 

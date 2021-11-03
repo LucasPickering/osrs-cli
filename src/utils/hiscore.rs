@@ -1,6 +1,9 @@
 //! Utilities for fetching player data from the OSRS hiscores.
 
-use crate::utils::skill::{Skill, SKILLS};
+use crate::utils::{
+    http,
+    skill::{Skill, SKILLS},
+};
 use anyhow::Context;
 use csv::ReaderBuilder;
 use serde::Deserialize;
@@ -201,7 +204,8 @@ impl HiscorePlayer {
 /// each oen is identified only by its position in the list.
 fn load_hiscore_items(username: &str) -> anyhow::Result<Vec<HiscoreItem>> {
     // Fetch data from the API
-    let body = ureq::get(HISCORE_URL)
+    let body = http::agent()
+        .get(HISCORE_URL)
         .query("player", username)
         .call()?
         .into_string()?;
