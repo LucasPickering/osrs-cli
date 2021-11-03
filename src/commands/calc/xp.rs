@@ -171,10 +171,16 @@ impl Command for CalcXpCommand {
             xp_to_level(source_xp),
             fmt::fmt_int(&dest_xp),
             xp_to_level(dest_xp),
-            // TODO make this show negative numbers
-            format!("{} XP", fmt::fmt_int(&dest_xp.wrapping_sub(source_xp)))
-                .blue()
-                .bold()
+            format!(
+                "{} XP",
+                // This difference can be negative, so we cast to isize _after_
+                // subtraction. If the diff is negative, the result of
+                // wrapping_sub will be some very large number,
+                // but after the case it will be correct
+                fmt::fmt_int(&(dest_xp.wrapping_sub(source_xp) as isize))
+            )
+            .blue()
+            .bold()
         );
         Ok(())
     }
