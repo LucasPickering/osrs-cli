@@ -7,7 +7,7 @@ use crate::{
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-use strum::{EnumIter, IntoStaticStr};
+use strum::EnumIter;
 
 /// Different types of compost that can be applied to a farming patch
 #[derive(
@@ -182,15 +182,7 @@ impl Herb {
 
 /// An herb farming patch.
 #[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    PartialEq,
-    EnumIter,
-    IntoStaticStr,
-    Serialize,
-    Deserialize,
+    Copy, Clone, Debug, Display, PartialEq, EnumIter, Serialize, Deserialize,
 )]
 pub enum HerbPatch {
     Ardougne,
@@ -209,16 +201,11 @@ pub enum HerbPatch {
 }
 
 impl HerbPatch {
-    /// Get a user-friendly name for this patch
-    pub fn name(self) -> &'static str {
-        self.into()
-    }
-
     /// Get a descriptive string that includes this patch's name and all of its
     /// buffs
     pub fn description(self, herb_cfg: &FarmingHerbsConfig) -> String {
         // Start with the patch name
-        let mut description = self.name().to_owned();
+        let mut description = self.to_string();
 
         let disease_free = self.disease_free(herb_cfg);
         let chance_to_save_bonus = self.chance_to_save_bonus(herb_cfg);
@@ -555,6 +542,15 @@ impl Display for FarmingHerbsConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
+            "Patches: {}",
+            self.patches
+                .iter()
+                .map(|patch| patch.description(self))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )?;
+        writeln!(
+            f,
             "Magic secateurs: {}",
             fmt::fmt_bool(self.magic_secateurs)
         )?;
@@ -565,18 +561,10 @@ impl Display for FarmingHerbsConfig {
             fmt::fmt_bool(self.bottomless_bucket)
         )?;
         writeln!(f, "Compost: {}", fmt::fmt_option(self.compost))?;
-        writeln!(f, "Anima plant: {}", fmt::fmt_option(self.anima_plant))?;
         // Last line should be just a `write!` so we don't have a dangling
         // newline at the end
-        write!(
-            f,
-            "Patches: {}",
-            self.patches
-                .iter()
-                .map(|patch| patch.description(self))
-                .collect::<Vec<_>>()
-                .join(", ")
-        )?;
+        write!(f, "Anima plant: {}", fmt::fmt_option(self.anima_plant))?;
+
         Ok(())
     }
 }
