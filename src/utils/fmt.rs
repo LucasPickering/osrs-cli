@@ -1,11 +1,15 @@
 //! Utilities related to formatting values into strings
 
-use num_format::{SystemLocale, ToFormattedString};
+use num_format::{Locale, ToFormattedString};
 use std::fmt::Display;
 
-/// Format the given number. The formatting will be based on system locale.
+/// Format the given number.
 pub fn fmt_int<T: ToFormattedString>(num: &T) -> String {
-    let locale = SystemLocale::default().unwrap();
+    // Formatting is hard-coded to English locale, because the system locale
+    // detection wasn't working on Windows (num-format wouldn't compile on
+    // v0.4.0). We could try again in the future, but since OSRS is hard-coded
+    // to English, not much of a reason for the CLI to be more flexible.
+    let locale = Locale::en;
     num.to_formatted_string(&locale)
 }
 

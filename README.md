@@ -7,12 +7,42 @@ A command line tool for doing lookups and calculations related to Oldschool Rune
 - Hiscores lookups
 - And more!
 
+This tool is intended for people who are already familiar and comfortable with the command line. If you aren't, then you're probably better off using the wiki and other web-based tools.
+
+### Table of Contents
+
+- [Installation](#installation)
+- [Examples](#examples)
+- [Bug Reports/Feature Requests](#bug-reportsfeature-requests)
+
 ## Installation
 
-Currently this is only installable via cargo. **See `Cargo.toml` for minimum Rust version**.
+There are a few ways to install the project:
 
-```
+- From binary
+- From [crates.io](https://crates.io)
+- From source
+
+### From Binary
+
+Go to [the Releases page](https://github.com/LucasPickering/osrs-cli/releases) and download the latest release for your platform (for Windows, you probably want the `msvc` version). Extract the archive and copy the executable file (either `osrs` or `osrs.exe`) to a directory in your `PATH`.
+
+### From crates.io
+
+You can install this tool from [crates.io](https://crates.io) if you have a working Rust toolchain installed. You'll need a working Rust toolchain set up (Rustup & Cargo), [see here](https://doc.rust-lang.org/cargo/getting-started/installation.html) for instructions. Then run:
+
+```sh
 cargo install osrs-cli
+```
+
+This will install the latest version of the CLI to your path automatically.
+
+### From Source
+
+This is the most involved option, and you probably only want it if you really want to use an unreleased version of the tool. You'll need a working Rust toolchain for this (see instructions in the "crates.io" section above). Then, clone this repo and run:
+
+```sh
+cargo install --path .
 ```
 
 ## Examples
