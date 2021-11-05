@@ -9,9 +9,6 @@ on:
     - cron: "0 0 * * *"
   pull_request:
 
-env:
-  COMPOSE_FILE: docker-compose.ci.yml
-
 jobs:
   # This uses the toolchain defined in rust-toolchain, NOT what's defined above
   fmt:
@@ -19,14 +16,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+
       - name: Cache cargo files
         uses: actions/cache@v2
         with:
           path: |
+            ~/.rustup
             ~/.cargo/registry
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain') }}
+
+      # Enable after https://github.com/actions-rs/toolchain/issues/126
+      # - name: Install Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: ${{ matrix.rust }}
+      #     override: true
+      #     profile: minimal
+      #     components: clippy
+
       - name: Rustfmt
         uses: actions-rs/cargo@v1
         with:
@@ -48,22 +57,34 @@ jobs:
       RUSTUP_TOOLCHAIN: ${{ matrix.rust }}
     steps:
       - uses: actions/checkout@master
-      - name: Cache cargo files
+
+      - name: Cache Rust files
         uses: actions/cache@v2
         with:
           path: |
+            ~/.rustup
             ~/.cargo/registry
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
-      - name: Install dependencies
-        run: |
-          rustup component add clippy
+
+      # Enable after https://github.com/actions-rs/toolchain/issues/126
+      # - name: Install Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: ${{ matrix.rust }}
+      #     override: true
+      #     profile: minimal
+      #     components: clippy
+      - name: Install Clippy
+        run: rustup component add clippy
+
       - name: Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets --all-features -- -D clippy::all
+
       - name: Tests
         uses: actions-rs/cargo@v1
         with:
