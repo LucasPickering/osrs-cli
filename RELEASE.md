@@ -3,7 +3,7 @@
 The release process for this tool is as follows:
 
 - Cut a `release-x.y.z` branch
-  - Update the version number to `x.y.z`
+  - Update the version number in `Cargo.toml` to `x.y.z`
   - This branch should include **no** other changes, all patches should've already been merged to `master`
 - Post and merge a PR for this branch
 - Pull latest master (with the version update)
