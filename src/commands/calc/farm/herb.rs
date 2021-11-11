@@ -86,7 +86,8 @@ impl Command for CalcFarmHerbCommand {
         );
         table.set_titles(row![
             "Herb",
-            r->"Survival Chance",
+            r->"Lvl",
+            r->"Surv. Chance",
             r->"Yield/Run",
             r->"XP/Run",
             r->"Seed Price",
@@ -96,19 +97,23 @@ impl Command for CalcFarmHerbCommand {
 
         // Calculate expected results for each patch
         for herb in Herb::iter() {
-            let herb_stats =
-                calc_total_patch_stats(farming_level, herb_cfg, herb)?;
+            // Don't show herbs that the user doesn't have the level to grow
+            if herb.farming_level() <= farming_level {
+                let herb_stats =
+                    calc_total_patch_stats(farming_level, herb_cfg, herb)?;
 
-            // TODO add row highlighting for best rows by profit
-            table.add_row(row![
-                herb.to_string(),
-                r->fmt::fmt_probability(herb_stats.survival_chance),
-                r->format!("{:.3}", herb_stats.expected_yield),
-                r->format!("{:.1}", herb_stats.expected_xp),
-                r->fmt::fmt_price(herb_stats.seed_price),
-                r->fmt::fmt_price(herb_stats.grimy_herb_price),
-                r->fmt::fmt_int(&herb_stats.expected_profit),
-            ]);
+                // TODO add row highlighting for best rows by profit
+                table.add_row(row![
+                    herb.to_string(),
+                    r->herb.farming_level(),
+                    r->fmt::fmt_probability(herb_stats.survival_chance),
+                    r->format!("{:.3}", herb_stats.expected_yield),
+                    r->format!("{:.1}", herb_stats.expected_xp),
+                    r->fmt::fmt_price(herb_stats.seed_price),
+                    r->fmt::fmt_price(herb_stats.grimy_herb_price),
+                    r->fmt::fmt_int(&herb_stats.expected_profit),
+                ]);
+            }
         }
 
         table.printstd();
