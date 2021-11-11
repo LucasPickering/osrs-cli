@@ -69,6 +69,27 @@ pub enum Herb {
 }
 
 impl Herb {
+    /// Get the farming level required to plant this herb
+    pub fn farming_level(self) -> usize {
+        match self {
+            Self::Guam => 9,
+            Self::Marrentill => 14,
+            Self::Tarromin => 19,
+            Self::Harralander => 26,
+            Self::Goutweed => 29,
+            Self::Ranarr => 32,
+            Self::Toadflax => 38,
+            Self::Irit => 44,
+            Self::Avantoe => 50,
+            Self::Kwuarm => 56,
+            Self::Snapdragon => 62,
+            Self::Cadantine => 67,
+            Self::Lantadyme => 73,
+            Self::Dwarf => 79,
+            Self::Torstol => 85,
+        }
+    }
+
     /// Get the ID of the grimy herb item associated with this herb
     pub fn grimy_herb_item_id(self) -> usize {
         match self {
