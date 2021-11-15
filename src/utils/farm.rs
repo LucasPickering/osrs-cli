@@ -561,15 +561,12 @@ impl FarmingHerbsConfig {
 
 impl Display for FarmingHerbsConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(
-            f,
-            "Patches: {}",
-            self.patches
-                .iter()
-                .map(|patch| patch.description(self))
-                .collect::<Vec<_>>()
-                .join(", ")
-        )?;
+        // Each patch gets its own line
+        writeln!(f, "Patches:")?;
+        for patch in &self.patches {
+            writeln!(f, " - {}", patch.description(self))?;
+        }
+
         writeln!(
             f,
             "Magic secateurs: {}",
