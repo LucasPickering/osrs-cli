@@ -87,11 +87,11 @@ impl Command for CalcFarmHerbCommand {
         table.set_titles(row![
             "Herb",
             r->"Lvl",
-            r->"Surv. Chance",
+            r->"Surv%",
             r->"Yield/Run",
             r->"XP/Run",
-            r->"Seed Price",
-            r->"Herb Price",
+            r->"Seed$",
+            r->"Herb$",
             r->"Profit/Run",
         ]);
 
