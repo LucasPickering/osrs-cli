@@ -10,10 +10,10 @@ pub struct WikiCommand {
 
 impl Command for WikiCommand {
     fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
-        open::that_in_background(format!(
+        open::that(format!(
             "https://oldschool.runescape.wiki/?search={}",
             self.query.join(" ")
-        ));
+        ))?;
         Ok(())
     }
 }
