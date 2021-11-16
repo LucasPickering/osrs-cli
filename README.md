@@ -13,6 +13,14 @@ This tool is intended for people who are already familiar and comfortable with t
 
 - [Installation](#installation)
 - [Examples](#examples)
+  - [Hiscore Lookup](#hiscore-lookup)
+  - [Calculators](#calculators)
+    - [Drop Rate](#calculate-drop-rate)
+    - [XP/Levels](#calculate-xp-to-a-level)
+    - [Herb Farming](#calculate-herb-patch-output)
+    - [Spicy Stews](#calculate-spicy-stew-boosts)
+  - [Wiki Search](#search-the-wiki)
+  - [Ping](#ping-a-world)
 - [Bug Reports/Feature Requests](#bug-reportsfeature-requests)
 
 ## Installation
@@ -71,9 +79,13 @@ If you often do a hiscore lookup for your username (or someone else's), you can 
 osrs config set default_player <username>
 ```
 
-Then you can just use `osrs hiscore` to do a lookup on the default player.
+Then you can just use `osrs hiscore` to do a lookup on the default player. This username will also be used for any other player lookups, e.g. `osrs calc xp`.
 
-### Calculate drop rate
+### Calculators
+
+The tool has a number of calculators, all under the `osrs calc` subcommand
+
+#### Calculate drop rate
 
 If you're going for a pet with a 1/5000 drop rate and you want to know the odds of getting it in the first 1000 kills:
 
@@ -89,7 +101,7 @@ Or if you want to know the odds of getting all 4 pieces of the Angler's Outfit i
 43.0149% chance of ≥4 successes in 40 attempts
 ```
 
-### Calculate XP to a level
+#### Calculate XP to a level
 
 Calculate the XP needed to a target. The source can be a level, XP value, or a skill+player combination (their current XP will be looked up on the hiscores). The target can be a level or XP value.
 
@@ -99,7 +111,7 @@ osrs calc xp --from-lvl 50 --to-lvl 60
 osrs calc xp --player <username> --skill smithing --to-xp 123456
 ```
 
-### Calculate herb patch output
+#### Calculate herb patch output
 
 Picking which herb to grow is complicated. It involves a lot of math and there's a lot of different potential buffs to be applied. This calculator lets you configure your buffs once, then easily check the profitability (as well as XP gain) from all herbs at any time. Start by configuring your herb setup with:
 
@@ -116,39 +128,56 @@ osrs calc farm herb
 Here's some example output:
 
 ```
-Farming level: 93
-Patches: Catherby (+10% yield), Falador (+10% XP), Troll Stronghold (disease-free)
+Farming level: 50
+Patches:
+ - Ardougne
+ - Catherby (+10% yield)
+ - Falador (+10% XP)
+ - Port Phasmatys
 Magic secateurs: Yes
 Farming cape: No
-Bottomless bucket: Yes
+Bottomless bucket: No
 Compost: Ultracompost
 Anima plant: None
 
 Survival chance is an average across all patches. Yield values take into account survival chance.
-+-------------+-----------------+-----------+--------+------------+------------+------------+
-| Herb        | Survival Chance | Yield/Run | XP/Run | Seed Price | Herb Price | Profit/Run |
-+-------------+-----------------+-----------+--------+------------+------------+------------+
-| Guam leaf   |           95.4% |    25.970 |  465.6 |          7 |         12 |       -758 |
-| Marrentill  |           95.4% |    25.970 |  538.0 |          4 |         17 |       -619 |
-| Tarromin    |           95.4% |    26.124 |  626.2 |         10 |         88 |      1,221 |
-| Harralander |           95.4% |    26.124 |  799.5 |        100 |        646 |     15,528 |
-| Goutweed    |           95.4% |    26.124 | 1598.6 |    791,963 |          — | -2,376,936 |
-| Ranarr weed |           95.4% |    26.124 |  985.8 |     44,069 |      6,756 |     43,239 |
-| Toadflax    |           95.4% |    26.124 | 1215.8 |      3,300 |      2,145 |     45,088 |
-| Irit leaf   |           95.4% |    26.124 | 1504.0 |         38 |        760 |     18,691 |
-| Avantoe     |           95.4% |    26.280 | 1887.7 |        679 |      1,799 |     44,193 |
-| Kwuarm      |           95.4% |    26.280 | 2364.9 |        264 |      1,470 |     36,791 |
-| Snapdragon  |           95.4% |    26.280 | 2959.1 |     50,710 |      7,305 |     38,799 |
-| Cadantine   |           95.4% |    26.280 | 3581.1 |      1,300 |      1,755 |     41,173 |
-| Lantadyme   |           95.4% |    26.438 | 4516.9 |        650 |      1,418 |     34,491 |
-| Dwarf weed  |           95.4% |    26.438 | 5695.7 |        993 |        938 |     20,772 |
-| Torstol     |           95.4% |    26.438 | 6641.9 |     50,990 |      6,881 |     27,904 |
-+-------------+-----------------+-----------+--------+------------+------------+------------+
++-------------+-----+--------------+-----------+--------+------------+------------+------------+
+| Herb        | Lvl | Surv. Chance | Yield/Run | XP/Run | Seed Price | Herb Price | Profit/Run |
++-------------+-----+--------------+-----------+--------+------------+------------+------------+
+| Guam leaf   |   9 |        93.1% |    29.086 |  551.6 |          8 |         15 |     -1,997 |
+| Marrentill  |  14 |        93.1% |    29.385 |  638.8 |          7 |         17 |     -1,929 |
+| Tarromin    |  19 |        93.1% |    29.577 |  740.4 |         29 |        114 |        854 |
+| Harralander |  26 |        93.1% |    30.043 |  951.0 |         26 |        775 |     20,778 |
+| Goutweed    |  29 |        93.1% |    30.201 | 1923.1 |    889,350 |          — | -3,559,800 |
+| Ranarr weed |  32 |        93.1% |    30.201 | 1173.1 |     45,000 |      6,986 |     28,585 |
+| Toadflax    |  38 |        93.1% |    30.687 | 1461.5 |      2,325 |      2,145 |     54,122 |
+| Irit leaf   |  44 |        93.1% |    31.020 | 1820.5 |         38 |        798 |     22,200 |
+| Avantoe     |  50 |        93.1% |    31.406 | 2293.4 |        800 |      1,783 |     50,393 |
++-------------+-----+--------------+-----------+--------+------------+------------+------------+
+
 ```
 
 If you unlock a new patch, get new gear, etc., you can easily update the config by running `osrs config set-herb` again.
 
 Note: This calculator assumes you'll plant the same herb in all patches. You _could_ min/max more by putting different herbs in different patches, but that is not supported (yet). If you need that, feel free to request it.
+
+#### Calculate spicy stew boosts
+
+Tired of training for achievement diaries? Ever wondered how many doses of spice you should collect before attempting a spicy stew boost? This calculator will help you out!
+
+```
+> osrs calc stew --doses 25 --boost 3
+
++------------+-------+-------+-------+-------+-------+
+| Doses/Stew |   ≥+1 |   ≥+2 |   ≥+3 |   ≥+4 |   ≥+5 |
++------------+-------+-------+-------+-------+-------+
+|          1 | 99.9% |  0.0% |  0.0% |  0.0% |  0.0% |
+|          2 | 99.6% | 96.8% | 79.9% |  0.0% |  0.0% |
+|          3 | 98.7% | 96.1% | 90.0% | 76.8% | 50.0% |
++------------+-------+-------+-------+-------+-------+
+```
+
+Not only will it tell you the odds of hitting your desired boost, it will tell you how many doses you should put in each stew to maximize that chance. In this case, if you want a boost of 3 (or more), you should put 3 doses in each stew, to get a 90% chance of hitting that boost at least once (in 8 stews).
 
 ### Search the wiki
 
