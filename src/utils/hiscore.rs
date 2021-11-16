@@ -138,17 +138,18 @@ impl HiscorePlayer {
         let skills: HashMap<Skill, HiscoreSkill> = SKILLS
             .iter()
             .zip(&mut items)
-            .map(|(&skill, item)| {
-                (
+            .filter_map(|(&skill, item)| {
+                Some((
                     skill,
                     HiscoreSkill {
                         skill,
-                        // These values should ALWAYS be >0 for skills
-                        rank: item.rank.try_into().unwrap(),
-                        level: item.score.try_into().unwrap(),
-                        xp: item.xp.unwrap().try_into().unwrap(),
+                        // If any of these are -1, that means the player is
+                        // unranked in this skill
+                        rank: item.rank.try_into().ok()?,
+                        level: item.score.try_into().ok()?,
+                        xp: item.xp.unwrap().try_into().ok()?,
                     },
-                )
+                ))
             })
             .collect();
 
@@ -156,15 +157,16 @@ impl HiscorePlayer {
             .iter()
             .zip(&mut items)
             .filter_map(|(&name, item)| {
-                // Convert the rank+score from isize to usize. If it fails, that
-                // means it's a placeholder value, so we don't want to include
-                // this minigame
-                match (item.rank.try_into(), item.score.try_into()) {
-                    (Ok(rank), Ok(score)) => {
-                        Some((name, HiscoreMinigame { name, rank, score }))
-                    }
-                    _ => None,
-                }
+                Some((
+                    name,
+                    HiscoreMinigame {
+                        name,
+                        // If any of these are -1, that means the player is
+                        // unranked in this minigame
+                        rank: item.rank.try_into().ok()?,
+                        score: item.score.try_into().ok()?,
+                    },
+                ))
             })
             .collect();
 
@@ -177,13 +179,14 @@ impl HiscorePlayer {
     }
 
     /// Get a list of all skills for this player, in the standard order (i.e.)
-    /// the order shown in the hiscores/in-game skill panel)
+    /// the order shown in the hiscores/in-game skill panel). Any skill for
+    /// which the player is not ranked will not be included here.
     pub fn skills(&self) -> Vec<&HiscoreSkill> {
         // We can't just use self.skills.values() because they have to be in
         // the correct order
         SKILLS
             .iter()
-            .map(|skill| self.skills.get(skill).unwrap())
+            .filter_map(|skill| self.skills.get(skill))
             .collect()
     }
 
