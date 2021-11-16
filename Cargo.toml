@@ -8,7 +8,7 @@ name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
 # If you update this, make sure to update the version used in ci.yml
 rust-version = "1.56"
-version = "1.0.1"
+version = "1.0.2"
 
 [[bin]]
 name = "osrs"
