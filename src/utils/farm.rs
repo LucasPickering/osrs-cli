@@ -2,7 +2,9 @@
 
 use crate::{
     config::FarmingHerbsConfig,
-    utils::{diary::AchievementDiaryLevel, fmt, item, math, prices::Item},
+    utils::{
+        diary::AchievementDiaryLevel, fmt, item, item::WIKI_ITEM_CLIENT, math,
+    },
 };
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
@@ -441,8 +443,8 @@ impl HerbPatch {
     ) -> anyhow::Result<PriceStats> {
         // Either of these prices could be None if there is no trade data
         let grimy_herb_price =
-            Item::latest_high_price(herb.grimy_herb_item_id())?;
-        let seed_price = Item::latest_high_price(herb.seed_item_id())?;
+            WIKI_ITEM_CLIENT.get_avg_price(herb.grimy_herb_item_id())?;
+        let seed_price = WIKI_ITEM_CLIENT.get_avg_price(herb.seed_item_id())?;
 
         let compost_price = Self::calc_compost_price(herb_cfg)?;
 
@@ -468,10 +470,10 @@ impl HerbPatch {
     ) -> anyhow::Result<usize> {
         let base_cost = herb_cfg
             .compost
-            .map(|compost| Item::latest_high_price(compost.item_id()))
-            // Option<Result<Option<_>>> -> Result<Option<Option<_>>>
+            .map(|compost| WIKI_ITEM_CLIENT.get_avg_price(compost.item_id()))
+            // Opt<Res<Opt<_>>> -> Res<Opt<Opt<_>>> -> Opt<Opt<_>>
             .transpose()?
-            // Option<Option<_>> -> Option<_>
+            // Opt<Opt<_>> -> Opt<_>
             .flatten()
             // If not using compost, the cost is 0
             .unwrap_or_default();

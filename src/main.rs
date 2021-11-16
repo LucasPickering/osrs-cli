@@ -9,7 +9,7 @@ mod utils;
 use crate::{
     commands::{
         CalcCommand, Command, CommandType, HiscoreCommand, PingCommand,
-        WikiCommand,
+        PriceCommand, WikiCommand,
     },
     utils::context::CommandContext,
 };
@@ -26,6 +26,8 @@ enum OsrsCommandType {
     #[structopt(alias = "hs")]
     Hiscore(HiscoreCommand),
     Ping(PingCommand),
+    #[structopt(alias = "ge")]
+    Price(PriceCommand),
     Wiki(WikiCommand),
 }
 
@@ -36,6 +38,7 @@ impl CommandType for OsrsCommandType {
             Self::Config(cmd) => cmd,
             Self::Hiscore(cmd) => cmd,
             Self::Ping(cmd) => cmd,
+            Self::Price(cmd) => cmd,
             Self::Wiki(cmd) => cmd,
         }
     }

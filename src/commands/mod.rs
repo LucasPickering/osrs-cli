@@ -2,14 +2,17 @@ mod calc;
 mod config;
 mod hiscore;
 mod ping;
+mod price;
 mod wiki;
 
 pub use self::config::*;
-use crate::utils::context::CommandContext;
 pub use calc::*;
 pub use hiscore::*;
 pub use ping::*;
+pub use price::*;
 pub use wiki::*;
+
+use crate::utils::context::CommandContext;
 
 /// An enum that defines a list of subcommands.
 pub trait CommandType {
