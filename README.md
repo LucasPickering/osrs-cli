@@ -133,28 +133,31 @@ Patches:
  - Ardougne
  - Catherby (+10% yield)
  - Falador (+10% XP)
+ - Farming Guild (+5% yield)
+ - Hosidius (disease-free, +5% yield)
  - Port Phasmatys
+ - Troll Stronghold (disease-free)
+ - Weiss (disease-free)
 Magic secateurs: Yes
 Farming cape: No
-Bottomless bucket: No
+Bottomless bucket: Yes
 Compost: Ultracompost
 Anima plant: None
 
 Survival chance is an average across all patches. Yield values take into account survival chance.
-+-------------+-----+--------------+-----------+--------+------------+------------+------------+
-| Herb        | Lvl | Surv. Chance | Yield/Run | XP/Run | Seed Price | Herb Price | Profit/Run |
-+-------------+-----+--------------+-----------+--------+------------+------------+------------+
-| Guam leaf   |   9 |        93.1% |    29.086 |  551.6 |          8 |         15 |     -1,997 |
-| Marrentill  |  14 |        93.1% |    29.385 |  638.8 |          7 |         17 |     -1,929 |
-| Tarromin    |  19 |        93.1% |    29.577 |  740.4 |         29 |        114 |        854 |
-| Harralander |  26 |        93.1% |    30.043 |  951.0 |         26 |        775 |     20,778 |
-| Goutweed    |  29 |        93.1% |    30.201 | 1923.1 |    889,350 |          — | -3,559,800 |
-| Ranarr weed |  32 |        93.1% |    30.201 | 1173.1 |     45,000 |      6,986 |     28,585 |
-| Toadflax    |  38 |        93.1% |    30.687 | 1461.5 |      2,325 |      2,145 |     54,122 |
-| Irit leaf   |  44 |        93.1% |    31.020 | 1820.5 |         38 |        798 |     22,200 |
-| Avantoe     |  50 |        93.1% |    31.406 | 2293.4 |        800 |      1,783 |     50,393 |
-+-------------+-----+--------------+-----------+--------+------------+------------+------------+
-
++-------------+-----+-------+-----------+--------+---------+-------+------------+
+| Herb        | Lvl | Surv% | Yield/Run | XP/Run |   Seed$ | Herb$ | Profit/Run |
++-------------+-----+-------+-----------+--------+---------+-------+------------+
+| Guam leaf   |   9 | 95.7% |    59.737 | 1122.7 |       8 |    15 |     -1,571 |
+| Marrentill  |  14 | 95.7% |    60.350 | 1301.2 |       7 |    15 |     -1,555 |
+| Tarromin    |  19 | 95.7% |    60.781 | 1510.1 |      29 |   114 |      4,293 |
+| Harralander |  26 | 95.7% |    61.738 | 1941.7 |      26 |   775 |     45,237 |
+| Goutweed    |  29 | 95.7% |    62.064 | 3920.9 | 889,350 |     — | -7,117,200 |
+| Ranarr weed |  32 | 95.7% |    62.064 | 2397.0 |  45,000 | 6,986 |     71,179 |
+| Toadflax    |  38 | 95.7% |    63.063 | 2987.9 |   2,431 | 2,145 |    113,419 |
+| Irit leaf   |  44 | 95.7% |    63.747 | 3723.7 |      38 |   798 |     48,160 |
+| Avantoe     |  50 | 95.7% |    64.491 | 4690.2 |     800 | 1,783 |    106,182 |
++-------------+-----+-------+-----------+--------+---------+-------+------------+
 ```
 
 If you unlock a new patch, get new gear, etc., you can easily update the config by running `osrs config set-herb` again.
