@@ -20,13 +20,13 @@ impl Command for ConfigSetHerbCommand {
         let current_herb_config = &context.config().farming.herbs;
 
         // Ask the user a bunch of questions about global buffs
-        let farming_cape = console::confirm(
-            "Farming cape?",
-            current_herb_config.farming_cape,
-        )?;
         let magic_secateurs = console::confirm(
             "Magic secateurs?",
             current_herb_config.magic_secateurs,
+        )?;
+        let farming_cape = console::confirm(
+            "Farming cape?",
+            current_herb_config.farming_cape,
         )?;
         let bottomless_bucket = console::confirm(
             "Bottomless bucket?",

@@ -7,5 +7,4 @@ pub mod hiscore;
 pub mod http;
 pub mod item;
 pub mod math;
-pub mod prices;
 pub mod skill;
