@@ -12,7 +12,7 @@ impl Command for WikiCommand {
     fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
         open::that(format!(
             "https://oldschool.runescape.wiki/?search={}",
-            self.query.join(" ")
+            urlencoding::encode(&self.query.join(" "))
         ))?;
         Ok(())
     }
