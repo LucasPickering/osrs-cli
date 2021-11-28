@@ -59,7 +59,7 @@ struct SourceOptions {
     #[structopt(long = "--from-xp")]
     source_xp: Option<usize>,
     /// The level to start from.
-    #[structopt(long = "--from-lvl")]
+    #[structopt(long = "--from-lvl", alias = "--from-level")]
     source_level: Option<usize>,
     /// The player to pull a starting XP amount from. MUST be used in tandem
     /// with --skill. If not given, will use the default player in the config.
@@ -80,8 +80,13 @@ struct DestOptions {
     #[structopt(long = "--to-xp")]
     dest_xp: Option<usize>,
     /// The level to calculate to.
-    #[structopt(long = "--to-lvl")]
+    #[structopt(long = "--to-lvl", alias = "--to-level")]
     dest_level: Option<usize>,
+    /// Apply an offset to the destination XP. If no destination is given, then
+    /// this will be applied to the source XP. Useful to figure out what level
+    /// you will be after gaining a fixed amount of XP.
+    #[structopt(long = "--plus-xp", alias = "--plus")]
+    plus_xp: Option<usize>,
 }
 
 /// Calculate the xp needed to get from a starting point to an ending point.
@@ -94,11 +99,8 @@ pub struct CalcXpCommand {
 }
 
 impl CalcXpCommand {
-    fn get_source_xp(
-        context: &CommandContext,
-        options: &SourceOptions,
-    ) -> anyhow::Result<usize> {
-        match options {
+    fn get_source_xp(&self, context: &CommandContext) -> anyhow::Result<usize> {
+        match &self.source {
             // Use a given xp value
             SourceOptions {
                 source_xp: Some(source_xp),
@@ -138,33 +140,46 @@ impl CalcXpCommand {
         }
     }
 
-    fn get_dest_xp(options: &DestOptions) -> anyhow::Result<usize> {
-        match options {
+    fn get_dest_xp(&self, source_xp: usize) -> anyhow::Result<usize> {
+        let dest_xp = match self.dest {
             // Use a given xp value
             DestOptions {
                 dest_xp: Some(dest_xp),
                 dest_level: None,
-            } => Ok(*dest_xp),
+                plus_xp: _,
+            } => Ok(dest_xp),
 
             // Look up the source xp for a player/skill combo
             DestOptions {
                 dest_xp: None,
                 dest_level: Some(dest_level),
-            } => level_to_xp(*dest_level),
+                plus_xp: _,
+            } => level_to_xp(dest_level),
+
+            // If a relative offset was given, and no absolute dest, then we'll
+            // just offset based on the source
+            DestOptions {
+                dest_xp: None,
+                dest_level: None,
+                plus_xp: Some(_),
+            } => Ok(source_xp),
 
             // Anything else is invalid input, freak out!
             _ => Err(OsrsError::ArgsError(
                 "Must specify exactly one of --to-xp or --to-lvl".into(),
             )
             .into()),
-        }
+        }?;
+
+        // Apply the relative offset (if any)
+        Ok(dest_xp + self.dest.plus_xp.unwrap_or_default())
     }
 }
 
 impl Command for CalcXpCommand {
     fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
-        let source_xp = Self::get_source_xp(context, &self.source)?;
-        let dest_xp = Self::get_dest_xp(&self.dest)?;
+        let source_xp = self.get_source_xp(context)?;
+        let dest_xp = self.get_dest_xp(source_xp)?;
         println!(
             "{} XP (Level {}) => {} XP (Level {}) = {}",
             fmt::fmt_int(&source_xp),
