@@ -158,7 +158,7 @@ impl ItemPrice {
     /// Get the average of the recent high and low prices.
     pub fn avg(&self) -> Option<usize> {
         match (self.high, self.low) {
-            (Some(high), Some(low)) => Some(high + low / 2),
+            (Some(high), Some(low)) => Some((high + low) / 2),
             (Some(value), None) | (None, Some(value)) => Some(value),
             (None, None) => None,
         }
@@ -177,4 +177,60 @@ pub struct ItemWithPrice {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct ItemPriceResponse {
     data: HashMap<usize, ItemPrice>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_price_avg() {
+        // No price data available
+        assert_eq!(
+            ItemPrice {
+                high: None,
+                high_time: None,
+                low: None,
+                low_time: None,
+            }
+            .avg(),
+            None
+        );
+
+        // Only high price available
+        assert_eq!(
+            ItemPrice {
+                high: Some(1000),
+                high_time: Some(0),
+                low: None,
+                low_time: None,
+            }
+            .avg(),
+            Some(1000)
+        );
+
+        // Only low price available
+        assert_eq!(
+            ItemPrice {
+                high: None,
+                high_time: None,
+                low: Some(1000),
+                low_time: Some(0),
+            }
+            .avg(),
+            Some(1000)
+        );
+
+        // Both available - average them (should round down)
+        assert_eq!(
+            ItemPrice {
+                high: Some(1000),
+                high_time: Some(0),
+                low: Some(995),
+                low_time: Some(0),
+            }
+            .avg(),
+            Some(997)
+        );
+    }
 }
