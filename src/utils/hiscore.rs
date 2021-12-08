@@ -278,7 +278,6 @@ mod tests {
         let parsed_minigames = player.minigames();
         let mut skipped = 0;
         for (i, raw_row) in raw_response[SKILLS.len()..].iter().enumerate() {
-            dbg!(&raw_row);
             if raw_row.rank == -1 {
                 skipped += 1;
             } else {
