@@ -124,8 +124,9 @@ impl CalcXpCommand {
                 player,
                 skill: Some(skill),
             } => {
-                let player = HiscorePlayer::load(
-                    &context.config().get_username(player)?,
+                let player = HiscorePlayer::load_from_args(
+                    context.config(),
+                    player.as_slice(),
                 )?;
                 Ok(player.skill(*skill).xp)
             }

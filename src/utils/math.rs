@@ -64,6 +64,37 @@ pub fn binomial_cdf(
     }
 }
 
+/// Clamp a value into a fixed range
+pub fn clamp(value: f64, min: f64, max: f64) -> f64 {
+    if value < min {
+        min
+    } else if value > max {
+        max
+    } else {
+        value
+    }
+}
+
+/// Map a value from one range to another. The value will be scaled from the
+/// old range to the new one. For example if you map `12` from `[10, 20]` to
+/// `[1,2]`, you get 1.2. **Values outside the input range will be clamped to
+/// the range during mapping.** This guarantees that the output value will
+/// be in the output range.
+pub fn map_to_range(
+    value: f64,
+    from_start: f64,
+    from_end: f64,
+    to_start: f64,
+    to_end: f64,
+) -> f64 {
+    // Shift+scale to from in the input range to [0,1]
+    let normalized = (value - from_start) / (from_end - from_start);
+    // Force into [0,1]
+    let normalized = clamp(normalized, 0.0, 1.0);
+    // Scale+shift to the output range
+    to_start + normalized * (to_end - to_start)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

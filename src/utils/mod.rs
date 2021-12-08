@@ -6,5 +6,6 @@ pub mod fmt;
 pub mod hiscore;
 pub mod http;
 pub mod item;
+pub mod magic;
 pub mod math;
 pub mod skill;

@@ -3,7 +3,8 @@
 use crate::{
     config::FarmingHerbsConfig,
     utils::{
-        diary::AchievementDiaryLevel, fmt, item, item::WIKI_ITEM_CLIENT, math,
+        diary::AchievementDiaryLevel, fmt, item, item::WIKI_ITEM_CLIENT,
+        magic::Spell,
     },
 };
 use derive_more::Display;
@@ -323,10 +324,12 @@ impl HerbPatch {
     pub fn calc_patch_stats(
         self,
         farming_level: usize,
+        magic_level: Option<usize>,
         herb_cfg: &FarmingHerbsConfig,
         herb: Herb,
     ) -> anyhow::Result<PatchStats> {
-        let survival_chance = self.calc_survival_chance(herb_cfg);
+        let (survival_chance, resurrect_cast_chance) =
+            self.calc_survival_chance(magic_level, herb_cfg);
         // IMPORTANT: We multiply by survival chance here to account for lost
         // patches.
         let expected_yield =
@@ -337,11 +340,16 @@ impl HerbPatch {
             + herb.xp_per_harvest() * expected_yield;
         // Calculate price-related stats. We grab all 3 of these fields at once
         // so we don't have to do a bunch of spaghetti plumbing
-        let price_stats =
-            self.calc_price_stats(herb_cfg, expected_yield, herb)?;
+        let price_stats = self.calc_price_stats(
+            herb_cfg,
+            expected_yield,
+            resurrect_cast_chance,
+            herb,
+        )?;
 
         Ok(PatchStats {
             survival_chance,
+            resurrect_cast_chance,
             expected_yield,
             expected_xp,
             seed_price: price_stats.seed_price,
@@ -351,18 +359,61 @@ impl HerbPatch {
     }
 
     /// The odds that an herb growing in this patch survives from seed to
-    /// adulthood, assuming it is not monitored at all.
-    fn calc_survival_chance(self, herb_cfg: &FarmingHerbsConfig) -> f64 {
+    /// adulthood, assuming it is not monitored at all. This also calculates
+    /// the chance of needing to cast Resurrect Crops, and factors the
+    /// success/failure of that spell into the overall survival rate. If the
+    /// config is set to not use the spell, then it will be ignored. Magic level
+    /// is optional because we won't need it if resurrection is disabled, but
+    /// if it *is* enabled, then `magic_level` should be populated.
+    ///
+    /// Returns a tuple of `(survival chance including resurrections, chance
+    /// of casting Resurrect Crops)`.
+    fn calc_survival_chance(
+        self,
+        magic_level: Option<usize>,
+        herb_cfg: &FarmingHerbsConfig,
+    ) -> (f64, f64) {
+        // https://oldschool.runescape.wiki/w/Disease_(Farming)
+        // https://oldschool.runescape.wiki/w/Seeds#Herb_seeds
+
+        // Here's some useful theorycrafting I did to understand this problem.
+        // Each patch has 3 meaningful growth stages (really it's 4, but it's
+        // impossible for the patch to die on the first cycle because it takes
+        // two cycles to go alive->diseased->dead), and 4 possible outcomes on
+        // each stage.
+        // S = survived
+        // D = died w/o resurrection attempted (must've signed a DNR)
+        // R = resurrect successfully
+        // F = resurrection attempted and failed
+        //
+        // We can assign a probability to each of these, using `s`, `d`, `r`,
+        // and `f`. We know `s == 1-d` and `r == 1-f` which is useful.
+        //
+        // First, the possible outcomes *without* resurrection:
+        // Good: SSS
+        // Bad: SSD, SD, D
+        // Here, the chance of survival is just `s^3`.
+        //
+        // Now when we factor in resurrection, it gets more complicated (keep in
+        // mind that resurrection can only be attemped once per crop):
+        // Good: SSS, SSR, SRS, RSS
+        // Bad: SSF, SF, F, SRD, RSD, RD
+        // So the chance of survival is `s^3 + 3s^r`, where the first term is
+        // survival au naturale and the second is the chance of modern medicine
+        // saving our herb and allowing it to live a fully and happy life.
+
         // https://oldschool.runescape.wiki/w/Disease_(Farming)#Reducing_disease_risk
         let disease_chance_per_cycle = if self.disease_free(herb_cfg) {
             0.0
         } else {
+            // These probs are all in multiples of 1/128, so we'll just work
+            // with numerators then do the division at the end
             // Base chance is based on compost
             let base_chance = match herb_cfg.compost {
-                None => 27.0 / 128.0,
-                Some(Compost::Normal) => 14.0 / 128.0,
-                Some(Compost::Supercompost) => 6.0 / 128.0,
-                Some(Compost::Ultracompost) => 3.0 / 128.0,
+                None => 27.0,
+                Some(Compost::Normal) => 14.0,
+                Some(Compost::Supercompost) => 6.0,
+                Some(Compost::Ultracompost) => 3.0,
             };
 
             // Iasor reduces chance by 80%
@@ -371,15 +422,40 @@ impl HerbPatch {
                 _ => 1.0,
             };
 
-            // Rate can't be lower than 1/128
-            f64::max(base_chance * modifier, 1.0 / 128.0)
+            // Round *down* to the nearest multiple of 1/128, but not to zero
+            let numerator = f64::max(f64::floor(base_chance * modifier), 1.0);
+            numerator / 128.0
         };
+        let survival_chance_per_cycle = 1.0 - disease_chance_per_cycle;
 
-        // All herbs have 4 growth cycles, and we want to find the chance of
-        // exactly 0 disease instances in 3 (n-1) trials. We use n-1 because
-        // the last growth cycle can't have disease
-        // https://oldschool.runescape.wiki/w/Seeds#Herb_seeds
-        math::binomial(disease_chance_per_cycle, 3, 0)
+        // The chance of surviving to adulthood, *not* includign
+        // resurrection. See the essay above for why this is correct.
+        let base_survival_chance = survival_chance_per_cycle.powi(3);
+
+        if herb_cfg.resurrect_crops {
+            let resurrect_chance =
+                Spell::resurrect_crops_chance(magic_level.expect(
+                    "magic level not provided but Resurrect Crops is enabled",
+                ));
+
+            // The chance that the patch (1) gets diseased (2) is successfully
+            // resurrected and (3) successfully grows to adulthood. See the
+            // essay above for why this makes sense.
+            let resurrect_to_adulthood_chance = 3.0
+                * survival_chance_per_cycle.powi(2)
+                * disease_chance_per_cycle
+                * resurrect_chance;
+
+            // The chance of needing to resurrect is just the base chance of
+            // death, i.e. the inverse of SSS
+            let cast_chance = 1.0 - base_survival_chance;
+            (
+                base_survival_chance + resurrect_to_adulthood_chance,
+                cast_chance,
+            )
+        } else {
+            (base_survival_chance, 0.0)
+        }
     }
 
     /// Calculate the chance to "save a life" when picking an herb. This is
@@ -433,12 +509,15 @@ impl HerbPatch {
 
     /// Calculate price and profit stats for this patch. Returned stats are
     /// stored in a helper struct for ease of use (as opposed to a tuple).
+    /// Resurrect cast chance is needed to factor in cost of runes. If
+    /// resurrection won't be used, the chance should just be zero.
     ///
     /// Fails iff a request for item price data fails.
     fn calc_price_stats(
         self,
         herb_cfg: &FarmingHerbsConfig,
         expected_yield: f64,
+        resurrect_cast_chance: f64,
         herb: Herb,
     ) -> anyhow::Result<PriceStats> {
         // Either of these prices could be None if there is no trade data
@@ -447,11 +526,16 @@ impl HerbPatch {
         let seed_price = WIKI_ITEM_CLIENT.get_avg_price(herb.seed_item_id())?;
 
         let compost_price = Self::calc_compost_price(herb_cfg)?;
+        // Cost of resurrection spell is cost of runes times the odds of needing
+        // to cast it
+        let rune_price = (Spell::ResurrectCrops.rune_cost()? as f64
+            * resurrect_cast_chance) as usize;
 
         // Missing prices should be treated as 0 here
         let revenue = (grimy_herb_price.unwrap_or_default() as f64
             * expected_yield) as isize;
-        let cost = (seed_price.unwrap_or_default() + compost_price) as isize;
+        let cost = (seed_price.unwrap_or_default() + compost_price + rune_price)
+            as isize;
         let expected_profit = revenue - cost;
 
         Ok(PriceStats {
@@ -494,6 +578,10 @@ pub struct PatchStats {
     /// The chance of a patch getting to fully growth, i.e. the opposite of the
     /// chance of it dying of disease.
     pub survival_chance: f64,
+    /// The chance of having to cast Resurrect Crops on the patch (whether it
+    /// succeeds or not). 0 if resurrection is disabled in the config. Useful
+    /// for calculating rune costs.
+    pub resurrect_cast_chance: f64,
     /// Expected yield from a patch, **factoring in the survival chance**.
     /// E.g. if survival chance is 50% and we expected to get 6 herbs per
     /// **fully grown** patch, then expected yield will be 3.0.
@@ -579,6 +667,11 @@ impl Display for FarmingHerbsConfig {
             f,
             "Bottomless bucket: {}",
             fmt::fmt_bool(self.bottomless_bucket)
+        )?;
+        writeln!(
+            f,
+            "Resurrect crops: {}",
+            fmt::fmt_bool(self.resurrect_crops)
         )?;
         writeln!(f, "Compost: {}", fmt::fmt_option(self.compost))?;
         // Last line should be just a `write!` so we don't have a dangling

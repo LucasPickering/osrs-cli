@@ -5,8 +5,8 @@ use crate::{
     utils::{
         context::CommandContext,
         farm::{Herb, PatchStats},
-        fmt,
-        hiscore::HiscorePlayer,
+        fmt, hiscore,
+        magic::Spell,
         skill::Skill,
     },
 };
@@ -26,18 +26,24 @@ use strum::IntoEnumIterator;
 pub struct CalcFarmHerbCommand {
     /// Farming level (affects crop yield). If provided, this will override
     /// hiscores lookup for a player.
-    #[structopt(short = "l", long = "lvl")]
+    #[structopt(short = "l", long = "lvl", alias = "level", alias = "farm")]
     farming_level: Option<usize>,
 
-    /// The player to pull a farming level from. If not given, will use the
-    /// default player in the config.
+    /// Magic level (affects Resurrect Crops success rate). If provided, this
+    /// will override hiscores lookup for a player.
+    #[structopt(long = "magic-lvl", alias = "magic")]
+    magic_level: Option<usize>,
+
+    /// The player to pull levels from. If not given, will use the default
+    /// player in the config.
     #[structopt(short, long)]
     player: Vec<String>,
 }
 
 impl Command for CalcFarmHerbCommand {
     fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
-        let herb_cfg = &context.config().farming.herbs;
+        let cfg = context.config();
+        let herb_cfg = &cfg.farming.herbs;
 
         // Make sure at least one patch is configured
         if herb_cfg.patches.is_empty() {
@@ -54,31 +60,56 @@ impl Command for CalcFarmHerbCommand {
         // 2. --player param
         // 3. Default player in config
         // 4. Freak out
-        let farming_level = match self {
-            Self {
-                farming_level: Some(farming_level),
-                ..
-            } => *farming_level,
-            Self {
-                farming_level: None,
-                player,
-            } => {
-                // This error message isn't the best, but hopefully it gets the
-                // point across
-                let username = context
-                    .config()
-                    .get_username(player)
-                    .context("Error loading farming level")?;
-                let player = HiscorePlayer::load(&username)?;
-                player.skill(Skill::Farming).level
+        let farming_level = hiscore::get_level_from_args(
+            cfg,
+            Skill::Farming,
+            &self.player,
+            self.farming_level,
+        )
+        .context("Error getting farming level")?;
+
+        // If the user wants to use Resurrect Crops, grab their magic level.
+        // This will error out if we can't get a level, so we only do it when
+        // actually needed
+        let magic_level = if herb_cfg.resurrect_crops {
+            let level =
+                // We use the same logic as grabbing farming level
+                hiscore::get_level_from_args(
+                    cfg,
+                    Skill::Magic,
+                    &self.player,
+                    self.magic_level,
+                )
+                .context("Error getting magic level")?;
+
+            // Make sure the player can actually cast the spell
+            let required_level = Spell::ResurrectCrops.level();
+            if level < required_level {
+                return Err(OsrsError::InvalidConfig(format!(
+                    "Resurrect Crops requires level {}, \
+                        but player has level {}",
+                    required_level, level
+                ))
+                .into());
             }
+
+            Some(level)
+        } else {
+            None
         };
 
         // Print a little prelude to give the user some info
         println!("Farming level: {}", farming_level);
+        // Only print magic level if it's being used
+        if let Some(magic_level) = magic_level {
+            println!("Magic level: {}", magic_level);
+        }
         println!("{}", &herb_cfg);
         println!();
-        println!("Survival chance is an average across all patches. Yield values take into account survival chance.");
+        println!(
+            "Survival chance is an average across all patches.\
+                Yield values take into account survival chance."
+        );
 
         let mut table = Table::new();
         table.set_format(
@@ -99,8 +130,12 @@ impl Command for CalcFarmHerbCommand {
         for herb in Herb::iter() {
             // Don't show herbs that the user doesn't have the level to grow
             if herb.farming_level() <= farming_level {
-                let herb_stats =
-                    calc_total_patch_stats(farming_level, herb_cfg, herb)?;
+                let herb_stats = calc_total_patch_stats(
+                    farming_level,
+                    magic_level,
+                    herb_cfg,
+                    herb,
+                )?;
 
                 // TODO add row highlighting for best rows by profit
                 table.add_row(row![
@@ -127,6 +162,7 @@ impl Command for CalcFarmHerbCommand {
 /// per-run expected output.
 fn calc_total_patch_stats(
     farming_level: usize,
+    magic_level: Option<usize>,
     herb_cfg: &FarmingHerbsConfig,
     herb: Herb,
 ) -> anyhow::Result<PatchStats> {
@@ -137,8 +173,12 @@ fn calc_total_patch_stats(
         // HerbPatch value, which picks out only the relevant modifiers. This
         // makes it easy to pass around the modifier context that we need, and
         // nothing more.
-        let patch_stats =
-            patch.calc_patch_stats(farming_level, herb_cfg, herb)?;
+        let patch_stats = patch.calc_patch_stats(
+            farming_level,
+            magic_level,
+            herb_cfg,
+            herb,
+        )?;
 
         // We aggregate survival chance here, then we'll turn it into an
         // average below
