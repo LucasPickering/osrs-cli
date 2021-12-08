@@ -1,9 +1,6 @@
-use crate::{
-    error::OsrsError,
-    utils::{
-        diary::AchievementDiaryLevel,
-        farm::{AnimaPlant, Compost, HerbPatch},
-    },
+use crate::utils::{
+    diary::AchievementDiaryLevel,
+    farm::{AnimaPlant, Compost, HerbPatch},
 };
 use anyhow::Context;
 use figment::{
@@ -38,15 +35,17 @@ pub struct FarmingHerbsConfig {
     /// The list of herb patches being farmed
     pub patches: Vec<HerbPatch>,
 
-    // Global-level modifiers, that apply to all patches
-    /// The type of compost being used
-    pub compost: Option<Compost>,
     /// Do you have magic secateurs equipped? (10% yield bonus)
     pub magic_secateurs: bool,
     /// Do you have a farming cape equipped? (5% yield bonus)
     pub farming_cape: bool,
     /// Do you have a bottomless bucket? Affects cost of compost per patch
     pub bottomless_bucket: bool,
+    /// Do you use the Resurrect Crops spell on patches that die?
+    pub resurrect_crops: bool,
+    // Global-level modifiers, that apply to all patches
+    /// The type of compost being used
+    pub compost: Option<Compost>,
     /// The type of Anima plant currently alive at the Farming Guild (can
     /// affect disease and yield rates)
     pub anima_plant: Option<AnimaPlant>,
@@ -124,23 +123,5 @@ impl OsrsConfig {
         write_config(&path, self).with_context(|| {
             format!("Error writing config to file `{}`", path.display())
         })
-    }
-
-    /// Convert a (possibly empty) list of username parts into a username. If
-    /// the array has at least one element, the elements will be appended
-    /// together with spaces between. If not, then we'll fall back to the
-    /// default player defined in the config. If that is not present either,
-    /// then return an arg error.
-    pub fn get_username(&self, username: &[String]) -> anyhow::Result<String> {
-        match (username, &self.default_player) {
-            // No arg provided, empty default - error
-            (&[], None) => {
-                Err(OsrsError::ArgsError("No player given".into()).into())
-            }
-            // No arg provided, but we have a default - use the default
-            (&[], Some(default_player)) => Ok(default_player.clone()),
-            // Arg was provided, return that
-            (&[_, ..], _) => Ok(username.join(" ")),
-        }
     }
 }

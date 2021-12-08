@@ -9,6 +9,22 @@ use std::collections::HashMap;
 
 // IDs are pulled from https://www.osrsbox.com/tools/item-search/
 
+pub const ITEM_ID_AIR_RUNE: usize = 556;
+pub const ITEM_ID_WATER_RUNE: usize = 555;
+pub const ITEM_ID_EARTH_RUNE: usize = 557;
+pub const ITEM_ID_FIRE_RUNE: usize = 554;
+pub const ITEM_ID_BODY_RUNE: usize = 559;
+pub const ITEM_ID_MIND_RUNE: usize = 558;
+pub const ITEM_ID_CHAOS_RUNE: usize = 562;
+pub const ITEM_ID_DEATH_RUNE: usize = 560;
+pub const ITEM_ID_BLOOD_RUNE: usize = 565;
+pub const ITEM_ID_WRATH_RUNE: usize = 21880;
+pub const ITEM_ID_COSMIC_RUNE: usize = 564;
+pub const ITEM_ID_NATURE_RUNE: usize = 561;
+pub const ITEM_ID_LAW_RUNE: usize = 563;
+pub const ITEM_ID_ASTRAL_RUNE: usize = 9075;
+pub const ITEM_ID_SOUL_RUNE: usize = 566;
+
 pub const ITEM_ID_COMPOST: usize = 6032;
 pub const ITEM_ID_SUPERCOMPOST: usize = 6034;
 pub const ITEM_ID_ULTRACOMPOST: usize = 21483;

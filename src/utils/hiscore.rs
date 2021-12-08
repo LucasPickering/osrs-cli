@@ -1,8 +1,12 @@
 //! Utilities for fetching player data from the OSRS hiscores.
 
-use crate::utils::{
-    http,
-    skill::{Skill, SKILLS},
+use crate::{
+    config::OsrsConfig,
+    error::OsrsError,
+    utils::{
+        http,
+        skill::{Skill, SKILLS},
+    },
 };
 use anyhow::Context;
 use csv::ReaderBuilder;
@@ -173,6 +177,29 @@ impl HiscorePlayer {
         Ok(Self { skills, minigames })
     }
 
+    /// Load a player's stats from a combination of a command line argument
+    /// and the config. If a name was supplied on the command line, use that,
+    /// otherwise fall back to the config. If there's no username present there
+    /// either, then return an error.
+    ///
+    /// This is useful for many commands that accept a `--player` argument.
+    pub fn load_from_args(
+        cfg: &OsrsConfig,
+        username_override: &[String],
+    ) -> anyhow::Result<Self> {
+        let username: String = match (username_override, &cfg.default_player) {
+            // No arg provided, empty default - error
+            (&[], None) => Err(anyhow::Error::from(OsrsError::ArgsError(
+                "No player given".into(),
+            ))),
+            // No arg provided, but we have a default - use the default
+            (&[], Some(default_player)) => Ok(default_player.clone()),
+            // Arg was provided, return that
+            (&[_, ..], _) => Ok(username_override.join(" ")),
+        }?;
+        Self::load(&username)
+    }
+
     /// Get data for a single skill from the player
     pub fn skill(&self, skill: Skill) -> &HiscoreSkill {
         self.skills.get(&skill).unwrap()
@@ -223,6 +250,35 @@ fn load_hiscore_items(username: &str) -> anyhow::Result<Vec<HiscoreItem>> {
         // If any item fails, this whole thing will fail
         .collect::<Result<Vec<HiscoreItem>, csv::Error>>()
         .context("Error parsing hiscore data")
+}
+
+/// A helper function for getting a particular skill level that is overridable
+/// via the command line. Many commands rely on a singular level (e.g. farming
+/// calculators rely on farming level). These commands tend to support passing
+/// the level in a variety of ways:
+/// 1. Directly on the command line
+/// 2. Pass username, look up the level on hiscores
+/// 3. Use username in the config, look up the level on hiscores
+///
+/// This function applies those options, in that order, and returns the
+/// appropriate level. You give this function all the info you got from the
+/// user, and it spits out the level you should use. If none of the three
+/// options are available, return an error.
+pub fn get_level_from_args(
+    cfg: &OsrsConfig,
+    skill: Skill,
+    username_override: &[String],
+    level_override: Option<usize>,
+) -> anyhow::Result<usize> {
+    if let Some(level) = level_override {
+        // Level override was given, use it
+        Ok(level)
+    } else {
+        // Look up by player name. This will try the username override first,
+        // then fall back on the cfg. If neither is present, we'll error out
+        let player = HiscorePlayer::load_from_args(cfg, username_override)?;
+        Ok(player.skill(skill).level)
+    }
 }
 
 #[cfg(test)]

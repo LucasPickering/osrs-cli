@@ -32,6 +32,10 @@ impl Command for ConfigSetHerbCommand {
             "Bottomless bucket?",
             current_herb_config.bottomless_bucket,
         )?;
+        let resurrect_crops = console::confirm(
+            "Resurrect crops?",
+            current_herb_config.resurrect_crops,
+        )?;
         let compost = console::enum_select::<Compost>(
             "Compost",
             current_herb_config.compost,
@@ -91,6 +95,7 @@ impl Command for ConfigSetHerbCommand {
             bottomless_bucket,
             farming_cape,
             magic_secateurs,
+            resurrect_crops,
             compost,
             anima_plant,
 
