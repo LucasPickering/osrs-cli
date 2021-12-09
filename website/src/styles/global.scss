@@ -1,0 +1,35 @@
+body {
+  font-family: sans-serif;
+  background-color: $backgroundColor;
+  color: $textColor;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+a {
+  color: $primaryColor;
+}
+
+a:visited {
+  color: $secondaryColor;
+}
+
+pre {
+  background-color: $backgroundColorLight;
+  padding: $spacingSmall;
+  border-radius: 4px;
+}
+
+#root {
+  width: 100%;
+}
+
+#main-content {
+  max-width: $maxContentWidth;
+  margin: 0 auto;
+  width: 100%;
+  padding: $spacingMedium;
+}

@@ -203,7 +203,24 @@ osrs ping 450
 
 Found a bug or have a suggestion for a new feature? [Submit an issue on this repo](https://github.com/LucasPickering/osrs-cli/issues/new).
 
-## Rust Version
+## Development
+
+Interested in contributing? Here's some basic steps for setup:
+
+### CLI
+
+The CLI is written entirely in Rust.
+
+Required tools:
+
+- [rustup](https://rustup.rs/)
+
+```sh
+cargo run -- help # Run any command
+cargo test # Run unit tests
+```
+
+#### Rust Version
 
 See `Cargo.toml` for minimum Rust version. This can be built on both stable/beta and nightly. It optionally uses the following nightly features, which are simply disabled when building on stable/beta:
 
@@ -214,3 +231,19 @@ See `Cargo.toml` for minimum Rust version. This can be built on both stable/beta
   - [wrap_comments](https://github.com/rust-lang/rustfmt/issues/3347)
 
 [Here's a handy site for finding new Rust nightly versions](https://rust-lang.github.io/rustup-components-history/).
+
+### Website
+
+The website is HTML/CSS, compiled using the 11ty framework.
+
+Required tools:
+
+- [nvm](https://github.com/nvm-sh/nvm)
+
+```sh
+cd website
+npm install
+npm run start
+```
+
+Change files and you should see the site refresh in your browser.

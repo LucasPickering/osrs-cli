@@ -1,0 +1,52 @@
+name: Build and Deploy Website
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Install npm dependencies
+        working-directory: website
+        run: npm install
+
+      # We have to build *first* so we can get typedefs from the wasm crate
+      - name: Build
+        working-directory: website
+        run: npm run build
+
+      - name: Archive build
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: website/dist
+
+  # Deploy only on master
+  deploy:
+    name: "Deploy"
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs:
+      - build
+    steps:
+      - name: Download build artifact
+        id: download
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.7
+        with:
+          branch: gh-pages
+          folder: ${{ steps.download.outputs.download-path }}
+          clean: true

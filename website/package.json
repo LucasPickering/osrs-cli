@@ -1,0 +1,26 @@
+{
+  "name": "osrs-cli-site",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run sass -- --no-source-map && npx @11ty/eleventy",
+    "start": "npm run sass:watch & npx @11ty/eleventy --serve",
+    "sass": "npx sass --style compressed src/styles/main.scss dist/styles.css",
+    "sass:watch": "npm run sass -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LucasPickering/osrs-cli.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LucasPickering/osrs-cli/issues"
+  },
+  "homepage": "https://osrs.lucaspickering.me",
+  "devDependencies": {
+    "@11ty/eleventy": "^0.12.1",
+    "sass": "^1.44.0"
+  }
+}
