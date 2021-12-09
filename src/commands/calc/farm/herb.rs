@@ -107,7 +107,7 @@ impl Command for CalcFarmHerbCommand {
         println!("{}", &herb_cfg);
         println!();
         println!(
-            "Survival chance is an average across all patches.\
+            "Survival chance is an average across all patches. \
                 Yield values take into account survival chance."
         );
 
