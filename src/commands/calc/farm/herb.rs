@@ -11,7 +11,7 @@ use crate::{
     },
 };
 use anyhow::Context;
-use prettytable::{cell, row, Table};
+use prettytable::{cell, color, row, Attr, Row, Table};
 use structopt::StructOpt;
 use strum::IntoEnumIterator;
 
@@ -111,6 +111,80 @@ impl Command for CalcFarmHerbCommand {
                 Yield values take into account survival chance."
         );
 
+        // Calculate stats for each herb
+        let herb_stats: Vec<(Herb, PatchStats)> = Herb::iter()
+            // Don't show herbs that the player can't grow
+            .filter(|herb| herb.farming_level() <= farming_level)
+            .map(|herb| {
+                Ok((
+                    herb,
+                    self.calc_total_patch_stats(
+                        farming_level,
+                        magic_level,
+                        herb_cfg,
+                        herb,
+                    )?,
+                ))
+            })
+            .collect::<anyhow::Result<_>>()?;
+
+        let table = self.build_table(herb_stats);
+        table.printstd();
+
+        Ok(())
+    }
+}
+
+impl CalcFarmHerbCommand {
+    /// Calculate output statistics for *all* patches. Survival chance will be
+    /// average across all patches (including disease-free, which have a chance
+    /// of 100%), and yield/XP/profit will be totaled across all patches to
+    /// provide per-run expected output.
+    fn calc_total_patch_stats(
+        &self,
+        farming_level: usize,
+        magic_level: Option<usize>,
+        herb_cfg: &FarmingHerbsConfig,
+        herb: Herb,
+    ) -> anyhow::Result<PatchStats> {
+        let mut total_stats = PatchStats::default();
+
+        for patch in &herb_cfg.patches {
+            // Map the patch name + the modifiers for all patches into a
+            // combined HerbPatch value, which picks out only the
+            // relevant modifiers. This makes it easy to pass around
+            // the modifier context that we need, and nothing more.
+            let patch_stats = patch.calc_patch_stats(
+                farming_level,
+                magic_level,
+                herb_cfg,
+                herb,
+            )?;
+
+            // We aggregate survival chance here, then we'll turn it into an
+            // average below
+            total_stats.survival_chance += patch_stats.survival_chance;
+
+            // Prices should be the same across all patches since they use the
+            // same herb
+            total_stats.seed_price = patch_stats.seed_price;
+            total_stats.grimy_herb_price = patch_stats.grimy_herb_price;
+
+            // Yield and XP should be pure totals
+            total_stats.expected_yield += patch_stats.expected_yield;
+            total_stats.expected_xp += patch_stats.expected_xp;
+            total_stats.expected_profit += patch_stats.expected_profit;
+        }
+
+        // Convert survival chance from total => average
+        total_stats.survival_chance /= herb_cfg.patches.len() as f64;
+        Ok(total_stats)
+    }
+
+    /// Build a nice formatted table with all the output we want. Input is a
+    /// list of herbs (in the order to be displayed), each one with its
+    /// associated XP/GP stats.
+    fn build_table(&self, herb_stats: Vec<(Herb, PatchStats)>) -> Table {
         let mut table = Table::new();
         table.set_format(
             *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
@@ -126,76 +200,57 @@ impl Command for CalcFarmHerbCommand {
             r->"Profit/Run",
         ]);
 
-        // Calculate expected results for each patch
-        for herb in Herb::iter() {
-            // Don't show herbs that the user doesn't have the level to grow
-            if herb.farming_level() <= farming_level {
-                let herb_stats = calc_total_patch_stats(
-                    farming_level,
-                    magic_level,
-                    herb_cfg,
-                    herb,
-                )?;
-
-                // TODO add row highlighting for best rows by profit
-                table.add_row(row![
-                    herb.to_string(),
-                    r->herb.farming_level(),
-                    r->fmt::fmt_probability(herb_stats.survival_chance),
-                    r->format!("{:.3}", herb_stats.expected_yield),
-                    r->format!("{:.1}", herb_stats.expected_xp),
-                    r->fmt::fmt_price(herb_stats.seed_price),
-                    r->fmt::fmt_price(herb_stats.grimy_herb_price),
-                    r->fmt::fmt_int(&herb_stats.expected_profit),
-                ]);
-            }
+        if herb_stats.is_empty() {
+            return table;
         }
 
-        table.printstd();
-        Ok(())
+        // Find the highest profit value. We'll use this to style each row
+        // according to its relative profitability
+        let max_profitability = herb_stats
+            .iter()
+            .map(|(_, stats)| stats.expected_profit)
+            .max()
+            .unwrap() as f64; // we know the list isn't empty at this point
+
+        // Calculate expected results for each patch
+        for (herb, stats) in herb_stats {
+            let mut cells = vec![
+                cell!(herb.to_string()),
+                // Numeric columns are all right-aligned
+                cell!(r->herb.farming_level()),
+                cell!(r->fmt::fmt_probability(stats.survival_chance)),
+                cell!(r->format!("{:.3}", stats.expected_yield)),
+                cell!(r->format!("{:.1}", stats.expected_xp)),
+                cell!(r->fmt::fmt_price(stats.seed_price)),
+                cell!(r->fmt::fmt_price(stats.grimy_herb_price)),
+                cell!(r->fmt::fmt_int(&stats.expected_profit)),
+            ];
+
+            // Style each row according to profitability
+            for cell in &mut cells {
+                if stats.expected_profit >= 0 {
+                    cell.style(Attr::ForegroundColor(color::BRIGHT_GREEN));
+
+                    let profitability_factor =
+                        stats.expected_profit as f64 / max_profitability;
+                    // The most profitable should be very obvious
+                    if (profitability_factor - 1.0).abs() < f64::EPSILON {
+                        cell.style(Attr::Underline(true));
+                    }
+
+                    // Anything close in profitablility should also be
+                    // highlighted
+                    if profitability_factor >= 0.8 {
+                        cell.style(Attr::ForegroundColor(color::GREEN));
+                    }
+                } else {
+                    cell.style(Attr::ForegroundColor(color::BRIGHT_RED));
+                };
+            }
+
+            table.add_row(Row::new(cells));
+        }
+
+        table
     }
-}
-
-/// Calculate output statistics for *all* patches. Survival chance will be
-/// average across all patches (including disease-free, which have a chance of
-/// 100%), and yield/XP/profit will be totaled across all patches to provide
-/// per-run expected output.
-fn calc_total_patch_stats(
-    farming_level: usize,
-    magic_level: Option<usize>,
-    herb_cfg: &FarmingHerbsConfig,
-    herb: Herb,
-) -> anyhow::Result<PatchStats> {
-    let mut total_stats = PatchStats::default();
-
-    for patch in &herb_cfg.patches {
-        // Map the patch name + the modifiers for all patches into a combined
-        // HerbPatch value, which picks out only the relevant modifiers. This
-        // makes it easy to pass around the modifier context that we need, and
-        // nothing more.
-        let patch_stats = patch.calc_patch_stats(
-            farming_level,
-            magic_level,
-            herb_cfg,
-            herb,
-        )?;
-
-        // We aggregate survival chance here, then we'll turn it into an
-        // average below
-        total_stats.survival_chance += patch_stats.survival_chance;
-
-        // Prices should be the same across all patches since they use the same
-        // herb
-        total_stats.seed_price = patch_stats.seed_price;
-        total_stats.grimy_herb_price = patch_stats.grimy_herb_price;
-
-        // Yield and XP should be pure totals
-        total_stats.expected_yield += patch_stats.expected_yield;
-        total_stats.expected_xp += patch_stats.expected_xp;
-        total_stats.expected_profit += patch_stats.expected_profit;
-    }
-
-    // Convert survival chance from total => average
-    total_stats.survival_chance /= herb_cfg.patches.len() as f64;
-    Ok(total_stats)
 }
