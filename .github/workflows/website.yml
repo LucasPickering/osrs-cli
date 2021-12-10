@@ -38,15 +38,18 @@ jobs:
     needs:
       - build
     steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
       - name: Download build artifact
         id: download
         uses: actions/download-artifact@v2
         with:
           name: build
+          path: website/dist
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.7
         with:
           branch: gh-pages
           folder: ${{ steps.download.outputs.download-path }}
-          clean: true
