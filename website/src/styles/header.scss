@@ -1,0 +1,34 @@
+.nav-header {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  background-color: $backgroundColorDark;
+}
+
+.nav-content {
+  margin: 0 auto;
+  padding: $spacingMedium 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+  width: 100%;
+  max-width: $maxContentWidth;
+}
+
+.nav-content > * {
+  display: flex;
+  gap: $spacingLarge;
+}
+
+.nav-content a {
+  color: white;
+  text-decoration: none;
+}
+
+.nav-content a:hover {
+  text-decoration: underline;
+}
+
+.nav-content a:visited {
+  color: inherit;
+}

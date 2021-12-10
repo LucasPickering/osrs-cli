@@ -1,0 +1,4 @@
+/target/
+/website/dist/
+/website/node_modules/
+osrs.json

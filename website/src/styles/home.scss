@@ -1,0 +1,72 @@
+.typewriter {
+  padding: $spacingMedium;
+  font-size: 24px;
+  display: flex;
+  letter-spacing: 0.1em;
+  user-select: none;
+}
+
+.typewriter-prelude {
+  margin: 0;
+}
+
+.typewriter-content {
+  display: inline-flex;
+  margin: 0;
+}
+
+.typewriter-content code {
+  overflow: hidden;
+  border-right: 0.15em solid; /* Cursor */
+  white-space: nowrap;
+  animation: typing 1.5s steps(20, end) alternate infinite,
+    blink-caret 0.75s step-end infinite;
+}
+
+.typewriter-content code::before {
+  /* 3s per content: half to write it, half to delete it */
+  animation: content 18s step-end infinite;
+  content: "";
+}
+
+@keyframes content {
+  0% {
+    content: "price bandos godsword";
+  }
+  17% {
+    content: "hiscore Lynx Titan";
+  }
+  33% {
+    content: "calc xp --from-lvl 92 --to-lvl 99";
+  }
+  50% {
+    content: "calc drop -p 1/5000 -n 267";
+  }
+  67% {
+    content: "calc farm herb";
+  }
+  83% {
+    content: "wiki one small favour";
+  }
+}
+
+/* The typing effect */
+@keyframes typing {
+  0% {
+    width: 0;
+  }
+  67% {
+    width: 100%;
+  }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: $primaryColor;
+  }
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#383838" />
+    <meta name="description" content="OSRS CLI" />
+    <!-- TODO Enable once we have a favicon -->
+    <!-- <link rel="icon" href="/favicon.ico" /> -->
+    <link rel="stylesheet" href="/styles.css" />
+    <title>{{title}}</title>
+  </head>
+  <body>
+    <div id="root">
+      <header class="nav-header">
+        <nav class="nav-content">
+          <div>
+            <a href="/">Home</a>
+            <a href="/install">Install</a>
+            <a href="/guide">Guide</a>
+          </div>
+          <div>
+            <a href="https://github.com/LucasPickering/osrs-cli">Code</a>
+            <a href="https://github.com/LucasPickering/osrs-cli/issues/new">
+              Report a Bug
+            </a>
+            <a href="https://crates.io/crates/osrs-cli">crates.io</a>
+          </div>
+        </nav>
+      </header>
+
+      <main id="main-content">{{ content | safe }}</main>
+    </div>
+  </body>
+</html>
