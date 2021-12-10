@@ -1,4 +1,0 @@
-max_width = 80
-# these two are only available on nightly (F)
-imports_granularity = "Crate"
-wrap_comments = true
