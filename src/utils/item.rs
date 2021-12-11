@@ -105,7 +105,7 @@ impl WikiItemClient {
         &self,
         item_id: usize,
     ) -> anyhow::Result<Option<usize>> {
-        Ok(self.get_price(item_id)?.map(|price| price.avg()).flatten())
+        Ok(self.get_price(item_id)?.and_then(|price| price.avg()))
     }
 
     /// Search items by name. This will do a caseless substring match, and

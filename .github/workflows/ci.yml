@@ -51,7 +51,7 @@ jobs:
       matrix:
         # If you update stable, make sure to update Cargo.toml
         # If you update nightly, make sure to update rust-toolchain.toml
-        rust: ["1.56", nightly-2021-10-06]
+        rust: ["1.56", nightly-2021-12-10]
     env:
       # This overrides rust-toolchain.toml
       RUSTUP_TOOLCHAIN: ${{ matrix.rust }}
