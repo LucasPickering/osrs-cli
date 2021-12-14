@@ -21,6 +21,7 @@
   "homepage": "https://osrs.lucaspickering.me",
   "devDependencies": {
     "@11ty/eleventy": "^0.12.1",
+    "markdown-it-anchor": "^8.4.1",
     "sass": "^1.44.0"
   }
 }

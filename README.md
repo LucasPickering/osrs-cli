@@ -9,106 +9,32 @@ A command line tool for doing lookups and calculations related to Oldschool Rune
 
 This tool is intended for people who are already familiar and comfortable with the command line. If you aren't, then you're probably better off using the wiki and other web-based tools.
 
-### Table of Contents
-
-- [Installation](#installation)
-- [Examples](#examples)
-  - [Hiscore Lookup](#hiscore-lookup)
-  - [Calculators](#calculators)
-    - [Drop Rate](#calculate-drop-rate)
-    - [XP/Levels](#calculate-xp-to-a-level)
-    - [Herb Farming](#calculate-herb-patch-output)
-    - [Spicy Stews](#calculate-spicy-stew-boosts)
-  - [Wiki Search](#search-the-wiki)
-  - [Ping](#ping-a-world)
-- [Bug Reports/Feature Requests](#bug-reportsfeature-requests)
-
 ## Installation
 
-There are a few ways to install the project:
-
-- From binary
-- From [crates.io](https://crates.io)
-- From source
-
-### From Binary
-
-Go to [the Releases page](https://github.com/LucasPickering/osrs-cli/releases) and download the latest release for your platform (for Windows, you probably want the `msvc` version). Extract the archive and copy the executable file (either `osrs` or `osrs.exe`) to a directory in your `PATH`.
-
-### From crates.io
-
-You can install this tool from [crates.io](https://crates.io) if you have a working Rust toolchain installed. You'll need a working Rust toolchain set up (Rustup & Cargo), [see here](https://doc.rust-lang.org/cargo/getting-started/installation.html) for instructions. Then run:
-
-```sh
-cargo install osrs-cli
-```
-
-This will install the latest version of the CLI to your path automatically.
-
-### From Source
-
-This is the most involved option, and you probably only want it if you really want to use an unreleased version of the tool. You'll need a working Rust toolchain for this (see instructions in the "crates.io" section above). Then, clone this repo and run:
-
-```sh
-cargo install --path .
-```
+[See the website](https://osrs.lucaspickering.me/install)
 
 ## Examples
 
-For any command, you can get detailed information about arguments and usage with `--help`, for example:
-
-```
-osrs --help
-osrs calc --help
-osrs calc drop --help
-```
+Here are some simple examples. For more detail, see the [user guide on the website](https://osrs.lucaspickering.me/guide).
 
 ### Hiscore lookup
-
-Look up a user's stats and kill counts in the hiscores:
 
 ```
 osrs hiscore <username>
 ```
 
-#### Store your username for easier lookups
-
-If you often do a hiscore lookup for your username (or someone else's), you can store that as the default with:
+### Calculate drop rate
 
 ```
-osrs config set default_player <username>
-```
-
-Then you can just use `osrs hiscore` to do a lookup on the default player. This username will also be used for any other player lookups, e.g. `osrs calc xp`.
-
-### Calculators
-
-The tool has a number of calculators, all under the `osrs calc` subcommand
-
-#### Calculate drop rate
-
-If you're going for a pet with a 1/5000 drop rate and you want to know the odds of getting it in the first 1000 kills:
-
-```
-> osrs calc drop -p 1/5000 -n 1000
+> osrs calc drop --probability 1/5000 --kills 1000
 18.1286% chance of ≥1 successes in 1000 attempts
-```
-
-Or if you want to know the odds of getting all 4 pieces of the Angler's Outfit in 40 Fishing Trawler trips:
-
-```
-> osrs calc drop -p 1/12 -n 40 -t 4+
-43.0149% chance of ≥4 successes in 40 attempts
 ```
 
 #### Calculate XP to a level
 
-Calculate the XP needed to a target. The source can be a level, XP value, or a skill+player combination (their current XP will be looked up on the hiscores). The target can be a level or XP value.
-
 ```
 osrs calc xp --from-xp 100000 --to-lvl 80
 osrs calc xp --from-lvl 50 --to-lvl 60
-osrs calc xp --player <username> --skill smithing --to-xp 123456
 ```
 
 #### Calculate herb patch output
@@ -122,51 +48,32 @@ osrs config set-herb
 This will ask a bunch of questions about what patches, gear, and buffs you have. Once that's done, run the calculator with:
 
 ```
-osrs calc farm herb
-```
-
-Here's some example output:
-
-```
-Farming level: 50
+$ osrs calc farm herb
+Farming level: 26
 Patches:
  - Ardougne
- - Catherby (+10% yield)
+ - Catherby (+5% yield)
  - Falador (+10% XP)
- - Farming Guild (+5% yield)
- - Hosidius (disease-free, +5% yield)
  - Port Phasmatys
- - Troll Stronghold (disease-free)
- - Weiss (disease-free)
-Magic secateurs: Yes
+Magic secateurs: No
 Farming cape: No
-Bottomless bucket: Yes
-Compost: Ultracompost
+Bottomless bucket: No
+Resurrect crops: No
+Compost: Supercompost
 Anima plant: None
 
 Survival chance is an average across all patches. Yield values take into account survival chance.
-+-------------+-----+-------+-----------+--------+---------+-------+------------+
-| Herb        | Lvl | Surv% | Yield/Run | XP/Run |   Seed$ | Herb$ | Profit/Run |
-+-------------+-----+-------+-----------+--------+---------+-------+------------+
-| Guam leaf   |   9 | 95.7% |    59.737 | 1122.7 |       8 |    15 |     -1,571 |
-| Marrentill  |  14 | 95.7% |    60.350 | 1301.2 |       7 |    15 |     -1,555 |
-| Tarromin    |  19 | 95.7% |    60.781 | 1510.1 |      29 |   114 |      4,293 |
-| Harralander |  26 | 95.7% |    61.738 | 1941.7 |      26 |   775 |     45,237 |
-| Goutweed    |  29 | 95.7% |    62.064 | 3920.9 | 889,350 |     — | -7,117,200 |
-| Ranarr weed |  32 | 95.7% |    62.064 | 2397.0 |  45,000 | 6,986 |     71,179 |
-| Toadflax    |  38 | 95.7% |    63.063 | 2987.9 |   2,431 | 2,145 |    113,419 |
-| Irit leaf   |  44 | 95.7% |    63.747 | 3723.7 |      38 |   798 |     48,160 |
-| Avantoe     |  50 | 95.7% |    64.491 | 4690.2 |     800 | 1,783 |    106,182 |
-+-------------+-----+-------+-----------+--------+---------+-------+------------+
++-------------+-----+-------+-----------+--------+-------+-------+------------+
+| Herb        | Lvl | Surv% | Yield/Run | XP/Run | Seed$ | Herb$ | Profit/Run |
++-------------+-----+-------+-----------+--------+-------+-------+------------+
+| Guam leaf   |   9 | 86.6% |    20.548 |  398.9 |     6 |    20 |     -1,183 |
+| Marrentill  |  14 | 86.6% |    20.765 |  462.2 |     5 |    20 |     -1,175 |
+| Tarromin    |  19 | 86.6% |    20.961 |  536.7 |    10 |   121 |        926 |
+| Harralander |  26 | 86.6% |    21.365 |  691.2 |    32 |   696 |     13,172 |
++-------------+-----+-------+-----------+--------+-------+-------+------------+
 ```
 
-If you unlock a new patch, get new gear, etc., you can easily update the config by running `osrs config set-herb` again.
-
-Note: This calculator assumes you'll plant the same herb in all patches. You _could_ min/max more by putting different herbs in different patches, but that is not supported (yet). If you need that, feel free to request it.
-
-#### Calculate spicy stew boosts
-
-Tired of training for achievement diaries? Ever wondered how many doses of spice you should collect before attempting a spicy stew boost? This calculator will help you out!
+### Calculate spicy stew boosts
 
 ```
 > osrs calc stew --doses 25 --boost 3
@@ -180,11 +87,7 @@ Tired of training for achievement diaries? Ever wondered how many doses of spice
 +------------+-------+-------+-------+-------+-------+
 ```
 
-Not only will it tell you the odds of hitting your desired boost, it will tell you how many doses you should put in each stew to maximize that chance. In this case, if you want a boost of 3 (or more), you should put 3 doses in each stew, to get a 90% chance of hitting that boost at least once (in 8 stews).
-
 ### Search the wiki
-
-Search any term on the [Old School RuneScape Wiki](https://oldschool.runescape.wiki/):
 
 ```
 osrs wiki shark
@@ -192,8 +95,6 @@ osrs wiki smithing
 ```
 
 ### Ping a world
-
-Curious how laggy a world will be? Ping it!
 
 ```
 osrs ping 450
