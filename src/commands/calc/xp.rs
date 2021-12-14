@@ -59,7 +59,7 @@ struct SourceOptions {
     #[structopt(long = "--from-xp")]
     source_xp: Option<usize>,
     /// The level to start from.
-    #[structopt(long = "--from-lvl", alias = "--from-level")]
+    #[structopt(long = "--from-lvl", visible_alias = "from-level")]
     source_level: Option<usize>,
     /// The player to pull a starting XP amount from. MUST be used in tandem
     /// with --skill. If not given, will use the default player in the config.
@@ -80,12 +80,12 @@ struct DestOptions {
     #[structopt(long = "--to-xp")]
     dest_xp: Option<usize>,
     /// The level to calculate to.
-    #[structopt(long = "--to-lvl", alias = "--to-level")]
+    #[structopt(long = "--to-lvl", visible_alias = "to-level")]
     dest_level: Option<usize>,
     /// Apply an offset to the destination XP. If no destination is given, then
     /// this will be applied to the source XP. Useful to figure out what level
     /// you will be after gaining a fixed amount of XP.
-    #[structopt(long = "--plus-xp", alias = "--plus")]
+    #[structopt(long = "--plus-xp", visible_alias = "plus")]
     plus_xp: Option<usize>,
 }
 

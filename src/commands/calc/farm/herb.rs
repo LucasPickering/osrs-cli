@@ -26,12 +26,17 @@ use strum::IntoEnumIterator;
 pub struct CalcFarmHerbCommand {
     /// Farming level (affects crop yield). If provided, this will override
     /// hiscores lookup for a player.
-    #[structopt(short = "l", long = "lvl", alias = "level", alias = "farm")]
+    #[structopt(
+        short = "l",
+        long = "lvl",
+        visible_alias = "level",
+        visible_alias = "farm"
+    )]
     farming_level: Option<usize>,
 
     /// Magic level (affects Resurrect Crops success rate). If provided, this
     /// will override hiscores lookup for a player.
-    #[structopt(long = "magic-lvl", alias = "magic")]
+    #[structopt(long = "magic-lvl", visible_alias = "magic")]
     magic_level: Option<usize>,
 
     /// The player to pull levels from. If not given, will use the default
