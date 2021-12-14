@@ -336,7 +336,9 @@ impl HerbPatch {
             self.calc_expected_yield(herb_cfg, farming_level, herb)
                 * survival_chance;
         let expected_xp = herb_cfg.compost_xp()
-            + herb.xp_per_plant()
+            // "Seed" XP isn't granted until harvesting the final herb, which
+            // means plants that die don't grant *any* XP beyond the compost
+            + herb.xp_per_plant() * survival_chance
             + herb.xp_per_harvest() * expected_yield;
         // Calculate price-related stats. We grab all 3 of these fields at once
         // so we don't have to do a bunch of spaghetti plumbing
