@@ -21,12 +21,12 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 enum OsrsCommandType {
     Calc(CalcCommand),
-    #[structopt(alias = "cfg")]
+    #[structopt(visible_alias = "cfg")]
     Config(ConfigCommand),
-    #[structopt(alias = "hs")]
+    #[structopt(visible_alias = "hs")]
     Hiscore(HiscoreCommand),
     Ping(PingCommand),
-    #[structopt(alias = "ge")]
+    #[structopt(visible_alias = "ge")]
     Price(PriceCommand),
     Wiki(WikiCommand),
 }

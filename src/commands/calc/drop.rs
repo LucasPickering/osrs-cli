@@ -9,6 +9,65 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use structopt::StructOpt;
 
+/// Calculate the probability of getting a drop.
+#[derive(Debug, StructOpt)]
+pub struct CalcDropCommand {
+    /// The probability of a success. Typically your drop rate. Supports
+    /// decimal, percentage, or fractions. E.g., `0.02`, `2%`, and `1/50` are
+    /// all supported and equivalent.
+    #[structopt(short, long, parse(try_from_str = parse_probability))]
+    probability: f64,
+
+    /// The number of chances for your drop, e.g. kill count or harvest count.
+    #[structopt(short = "n", long, visible_aliases = &["kc", "kills"])]
+    iterations: usize,
+
+    /// Number of rolls on the loot table per iteration/kill. Supports float
+    /// values, for an average/approximate number.
+    #[structopt(short, long, default_value = "1")]
+    rolls: f64,
+
+    /// The target number of successes. Use just a number for an exact value,
+    /// or `+`/`-` for ranges. E.g., `1+` means "1 or more successes", `3-`
+    /// means "3 or fewer successes", etc.
+    #[structopt(short, long, parse(try_from_str = parse_target_range), default_value = "1+")]
+    target: TargetRange,
+}
+
+impl Command for CalcDropCommand {
+    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
+        // Valid probability
+        if !(0.0..=1.0).contains(&self.probability) {
+            return Err(OsrsError::ArgsError(format!(
+                "Probability must be between 0 and 1, got: {}",
+                self.probability
+            ))
+            .into());
+        }
+
+        // Do the cumulative distribution function, which is just to sum
+        // up the probability of all the values in the
+        // range. https://en.wikipedia.org/wiki/Binomial_distribution#Cumulative_distribution_function
+
+        let iterations = (self.iterations as f64 * self.rolls).floor() as usize;
+        let result_prob: f64 = math::binomial_cdf(
+            self.probability,
+            iterations,
+            &mut self.target.as_values(iterations),
+        );
+
+        println!(
+            "{} chance of {} successes in {} attempts, with {} roll(s)/attempt",
+            fmt::fmt_probability_long(result_prob),
+            self.target,
+            self.iterations,
+            self.rolls
+        );
+
+        Ok(())
+    }
+}
+
 /// Parse a probability string, which can be an integer, decimal, fraction, or
 /// percentage. Also enforces that the probability is in [0, 1].
 fn parse_probability(s: &str) -> anyhow::Result<f64> {
@@ -62,37 +121,6 @@ fn parse_probability(s: &str) -> anyhow::Result<f64> {
     }
 }
 
-/// Parse an input string for the target number of success into a numerical
-/// range. This looks for exact values, a range <= to a given value, or >= to
-/// a given value.
-fn parse_target_range(s: &str) -> anyhow::Result<TargetRange> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^(\d+)([-+]?)$").unwrap();
-    }
-    match RE.captures(s) {
-        // no buen
-        None => {
-            Err(OsrsError::ArgsError(format!("Invalid target range: {}", s))
-                .into())
-        }
-        // buen
-        Some(caps) => {
-            // Both these groups match always so if the regex matches, they
-            // should both have values
-            let k: usize = caps.get(1).unwrap().as_str().parse()?;
-            let sign = caps.get(2).unwrap().as_str();
-            let result = match sign {
-                "" => TargetRange::Eq(k),
-                "-" => TargetRange::Lte(k),
-                "+" => TargetRange::Gte(k),
-                // Regex shouldn't let any other values through
-                other => panic!("Regex allowed invalid sign char: {}", other),
-            };
-            Ok(result)
-        }
-    }
-}
-
 #[derive(Copy, Clone, Debug)]
 enum TargetRange {
     Eq(usize),
@@ -122,53 +150,34 @@ impl Display for TargetRange {
     }
 }
 
-/// Calculate the probability of getting a drop.
-#[derive(Debug, StructOpt)]
-pub struct CalcDropCommand {
-    /// The probability of a success. Typically your drop rate. Supports
-    /// decimal, percentage, or fractions. E.g., `0.02`, `2%`, and `1/50` are
-    /// all supported and equivalent.
-    #[structopt(short, long, parse(try_from_str = parse_probability))]
-    probability: f64,
-    /// The number of chances for your drop, e.g. kill count or harvest count.
-    #[structopt(short = "n", long)]
-    iterations: usize,
-    /// The target number of successes. Use just a number for an exact value,
-    /// or `+`/`-` for ranges. E.g., `1+` means "1 or more successes", `3-`
-    /// means "3 or fewer successes", etc.
-    #[structopt(short, long,parse(try_from_str = parse_target_range), default_value = "1+")]
-    target: TargetRange,
-}
-
-impl Command for CalcDropCommand {
-    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
-        // Valid probability
-        if !(0.0..=1.0).contains(&self.probability) {
-            return Err(OsrsError::ArgsError(format!(
-                "Probability must be between 0 and 1, got: {}",
-                self.probability
-            ))
-            .into());
+/// Parse an input string for the target number of success into a numerical
+/// range. This looks for exact values, a range <= to a given value, or >= to
+/// a given value.
+fn parse_target_range(s: &str) -> anyhow::Result<TargetRange> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"^(\d+)([-+]?)$").unwrap();
+    }
+    match RE.captures(s) {
+        // no buen
+        None => {
+            Err(OsrsError::ArgsError(format!("Invalid target range: {}", s))
+                .into())
         }
-
-        // Do the cumulative distribution function, which is just to sum
-        // up the probability of all the values in the
-        // range. https://en.wikipedia.org/wiki/Binomial_distribution#Cumulative_distribution_function
-
-        let result_prob: f64 = math::binomial_cdf(
-            self.probability,
-            self.iterations,
-            &mut self.target.as_values(self.iterations),
-        );
-
-        println!(
-            "{} chance of {} successes in {} attempts",
-            fmt::fmt_probability_long(result_prob),
-            self.target,
-            self.iterations
-        );
-
-        Ok(())
+        // buen
+        Some(caps) => {
+            // Both these groups match always so if the regex matches, they
+            // should both have values
+            let k: usize = caps.get(1).unwrap().as_str().parse()?;
+            let sign = caps.get(2).unwrap().as_str();
+            let result = match sign {
+                "" => TargetRange::Eq(k),
+                "-" => TargetRange::Lte(k),
+                "+" => TargetRange::Gte(k),
+                // Regex shouldn't let any other values through
+                other => panic!("Regex allowed invalid sign char: {}", other),
+            };
+            Ok(result)
+        }
     }
 }
 
