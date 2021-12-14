@@ -4,6 +4,22 @@ layout: default
 
 # Usage Guide
 
+## Table of Contents
+
+- [Commands](#commands)
+  - [Hiscore Lookup](#hiscore-lookup)
+  - [Price Lookup](#price-lookup)
+  - [Calculators](#calculators)
+    - [Drop Rate](#calculate-drop-rate)
+    - [XP/Levels](#calculate-xp-to-a-level)
+    - [Herb Farming](#calculate-herb-patch-output)
+    - [Spicy Stews](#calculate-spicy-stew-boosts)
+  - [Wiki Search](#search-the-wiki)
+  - [Ping](#ping-a-world)
+- [Configuration](#configuration)
+
+## Commands
+
 For any command, you can get detailed information about arguments and usage with `--help`, for example:
 
 ```
@@ -12,57 +28,102 @@ osrs calc --help
 osrs calc drop --help
 ```
 
-## Hiscore lookup
+### Hiscore lookup
 
 Look up a user's stats and kill counts in the hiscores:
 
 ```
-osrs hiscore <username>
+> osrs hiscore Swampletics
+Skills
++--------------+-----------+-------+-------------+
+| Skill        |      Rank | Level |          XP |
++--------------+-----------+-------+-------------+
+| Total        |   387,328 | 1,796 | 121,473,079 |
+|              (output abbreviated)              |
+| Hunter       |    19,900 |    99 |  13,640,216 |
+| Construction |   726,562 |    55 |     174,955 |
++--------------+-----------+-------+-------------+
+
+Minigames
++----------------------+-----------+-------+
+| Minigame             |      Rank | Score |
++----------------------+-----------+-------+
+| Clue Scroll (Medium) | 1,056,506 |     1 |
+| Barrows Chests       |     1,518 | 2,183 |
+| Theatre of Blood     |    23,547 |   125 |
++----------------------+-----------+-------+
 ```
 
-### Store your username for easier lookups
+You can [store your own username in your config file](#storing-your-username-for-easier-lookups) so that the `hiscore` subcommand, and others that require fetching skill information, can use your RSN when none is provided.
 
-If you often do a hiscore lookup for your username (or someone else's), you can store that as the default with:
+### Price Lookup
+
+Look up prices on the Grand Exchange using the `price` subcommand:
 
 ```
-osrs config set default_player <username>
+$ osrs price bandos godsword
++------------------------------+------------+
+| Item                         |      Price |
++------------------------------+------------+
+| Bandos godsword              | 17,611,983 |
+| Bandos godsword ornament kit |  5,800,944 |
++------------------------------+------------+
 ```
 
-Then you can just use `osrs hiscore` to do a lookup on the default player. This username will also be used for any other player lookups, e.g. `osrs calc xp`.
+Alternatively, you can use the `osrs ge` alias.
 
-## Calculators
+### Calculators
 
 The tool has a number of calculators, all under the `osrs calc` subcommand
 
-### Calculate drop rate
+#### Calculate drop rate
 
 If you're going for a pet with a 1/5000 drop rate and you want to know the odds of getting it in the first 1000 kills:
 
 ```
-> osrs calc drop -p 1/5000 -n 1000
+$ osrs calc drop -p 1/5000 -n 1000
 18.1286% chance of ≥1 successes in 1000 attempts
 ```
 
 Or if you want to know the odds of getting all 4 pieces of the Angler's Outfit in 40 Fishing Trawler trips:
 
 ```
-> osrs calc drop -p 1/12 -n 40 -t 4+
+$ osrs calc drop -p 1/12 -n 40 -t 4+
 43.0149% chance of ≥4 successes in 40 attempts
 ```
 
-### Calculate XP to a level
+Some bosses have multiple loot table rolls. For example, calculating the chance of getting 4+ Black tourmaline core drops in 221 kills from [Grostesque Guardians](https://oldschool.runescape.wiki/w/Grotesque_Guardians#Drops):
+
+```
+$ osrs calc drop -p 1/1000 --rolls 2 --kc 221 -t 4+
+0.1108% chance of ≥4 successes in 221 attempts, with 2 roll(s)/attempt
+```
+
+#### Calculate XP to a level
 
 Calculate the XP needed to a target. The source can be a level, XP value, or a skill+player combination (their current XP will be looked up on the hiscores). The target can be a level or XP value.
 
 ```
-osrs calc xp --from-xp 100000 --to-lvl 80
-osrs calc xp --from-lvl 50 --to-lvl 60
-osrs calc xp --player <username> --skill smithing --to-xp 123456
+$ osrs calc xp --from-xp 100000 --to-lvl 80
+100,000 XP (Level 49) => 1,986,068 XP (Level 80) = 1,886,068 XP
+
+$ osrs calc xp --from-lvl 50 --to-lvl 60
+101,333 XP (Level 50) => 273,742 XP (Level 60) = 172,409 XP
+
+$ osrs calc xp --player swampletics --skill smithing --to-xp 12345678
+1,039,361 XP (Level 73) => 12,345,678 XP (Level 98) = 11,306,317 XP
 ```
 
-### Calculate herb patch output
+Alternatively, want to know what level you'll be after gaining a certain amount of XP? Maybe you want to know what level you'll have after a quest?
 
-Picking which herb to grow is complicated. It involves a lot of math and there's a lot of different potential buffs to be applied. This calculator lets you configure your buffs once, then easily check the profitability (as well as XP gain) from all herbs at any time. Start by configuring your herb setup with:
+```
+$ osrs calc xp --from-lvl 1 --plus-xp 13750
+0 XP (Level 1) => 13,750 XP (Level 30) = 13,750 XP
+```
+
+#### Calculate herb patch output
+
+Picking which herb to grow is complicated. It involves a lot of math and there's a lot of different potential buffs to be applied. This calculator lets you configure your buffs once, then easily check the profitability (as well as XP gain) from all herbs at any time. [Start by using the configuration wizard](#herb-calculator-configuration-wizard) to define your patches and buffs.
 
 ```
 osrs config set-herb
@@ -71,12 +132,8 @@ osrs config set-herb
 This will ask a bunch of questions about what patches, gear, and buffs you have. Once that's done, run the calculator with:
 
 ```
-osrs calc farm herb
-```
+> osrs calc farm herb
 
-Here's some example output:
-
-```
 Farming level: 94
 Patches:
  - Ardougne
@@ -100,17 +157,7 @@ Survival chance is an average across all patches. Yield values take into account
 +-------------+-----+-------+-----------+---------+---------+-------+------------+
 | Guam leaf   |   9 | 95.7% |    69.601 |  1246.0 |      22 |    20 |     -1,308 |
 | Marrentill  |  14 | 95.7% |    69.601 |  1440.0 |       7 |    18 |     -1,328 |
-| Tarromin    |  19 | 95.7% |    69.601 |  1668.8 |      10 |   121 |      5,817 |
-| Harralander |  26 | 95.7% |    69.601 |  2130.4 |      20 |   653 |     42,765 |
-| Goutweed    |  29 | 95.7% |    69.601 |  4260.1 | 949,414 |     — | -7,597,832 |
-| Ranarr weed |  32 | 95.7% |    69.601 |  2626.8 |  44,236 | 7,340 |    154,462 |
-| Toadflax    |  38 | 95.7% |    70.016 |  3255.6 |   3,429 | 2,127 |    118,970 |
-| Irit leaf   |  44 | 95.7% |    70.016 |  4027.8 |      40 |   636 |     41,685 |
-| Avantoe     |  50 | 95.7% |    70.016 |  5030.0 |     464 | 1,699 |    112,719 |
-| Kwuarm      |  56 | 95.7% |    70.016 |  6301.2 |     587 | 1,404 |     91,083 |
-| Snapdragon  |  62 | 95.7% |    70.016 |  7884.6 |  54,367 | 8,262 |    141,010 |
-| Cadantine   |  67 | 95.7% |    70.016 |  9541.9 |   1,180 | 1,682 |    105,802 |
-| Lantadyme   |  73 | 95.7% |    70.435 | 12034.9 |   1,438 | 1,335 |     80,004 |
+|                              (output abbreviated)                              |
 | Dwarf weed  |  79 | 95.7% |    70.435 | 15175.6 |     578 |   914 |     57,231 |
 | Torstol     |  85 | 95.7% |    70.435 | 17696.7 |  54,036 | 7,695 |    107,185 |
 +-------------+-----+-------+-----------+---------+---------+-------+------------+
@@ -120,7 +167,7 @@ If you unlock a new patch, get new gear, etc., you can easily update the config 
 
 Note: This calculator assumes you'll plant the same herb in all patches. You _could_ min/max more by putting different herbs in different patches, but that is not supported (yet). If you need that, feel free to request it.
 
-### Calculate spicy stew boosts
+#### Calculate spicy stew boosts
 
 Tired of training for achievement diaries? Ever wondered how many doses of spice you should collect before attempting a spicy stew boost? This calculator will help you out!
 
@@ -138,19 +185,49 @@ Tired of training for achievement diaries? Ever wondered how many doses of spice
 
 Not only will it tell you the odds of hitting your desired boost, it will tell you how many doses you should put in each stew to maximize that chance. In this case, if you want a boost of 3 (or more), you should put 3 doses in each stew, to get a 90% chance of hitting that boost at least once (in 8 stews).
 
-## Search the wiki
+### Search the wiki
 
 Search any term on the [Old School RuneScape Wiki](https://oldschool.runescape.wiki/):
 
 ```
 osrs wiki shark
-osrs wiki smithing
+osrs wiki one small favour
 ```
 
-## Ping a world
+### Ping a world
 
 Curious how laggy a world will be? Ping it!
 
 ```
 osrs ping 450
 ```
+
+## Configuration
+
+OSRS CLI supports persistent configuration to store common inputs. Configuration can be read and modified via the `osrs config` subcommand family. Some examples:
+
+```sh
+osrs config get # Get the entire config
+osrs config get default_player # Get the default_player field
+osrs config set default_player Lynx Titan # Set the default_player
+```
+
+#### Storing your username for easier lookups
+
+If you often do a hiscore lookup for your username (or someone else's), you can store that as the default with:
+
+```
+osrs config set default_player <username>
+```
+
+Then you can just use `osrs hiscore` to do a lookup on the default player. This username will also be used for any other player lookups, e.g. `osrs calc xp --skill smithing`.
+
+#### Herb calculator configuration wizard
+
+The herb calculator has a _lot_ of options. Fortunately, they can easily all be configured with the `config set-herb` subcommand:
+
+```
+osrs config set-herb
+```
+
+Fill in all the requested information, then those settings will be persisted so that any time you run `osrs calc farm herb`, it will use them. If you need to make changes to the settings, just run `osrs config set-herb` again.
