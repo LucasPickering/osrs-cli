@@ -9,19 +9,15 @@ The release process for this tool is as follows:
   - Commit with the message `x.y.z`
   - This branch should include **no** other changes, all patches should've already been merged to `master`
 - Post and merge a PR for this branch into `master`
-- Merge all changes since the last release into the `release`
-  - Note: this _can't_ be done via PR, because we need a fast-forward merge with all the same commit hashes as `master`, which [isn't possible on GitHub](https://stackoverflow.com/questions/60597400/how-to-do-a-fast-forward-merge-on-github)
-  - ```
-    git checkout master
-    git pull
-    git checkout release
-    git pull
-    git merge --ff master
-    git push
-    ```
-- Wait for the release CI jobs to run
-  - This will create a GitHub Release, push the appropriate git tag, and publish the latest package to crates.io, and attach all artifacts to the draft release
+- Run [the merge workflow](https://github.com/LucasPickering/osrs-cli/actions/workflows/merge-release.yml) from `master` to merge all changes into the `release` branch
+  - This will also create a new git tag for the latest crate version, which will trigger a workflow to do the following:
+    - Create a draft release on GitHub
+    - Publish to crates.io
+    - Attach build artifacts to the draft release
+- Wait for the release CI jobs to finish
 - Update the draft release with patch notes
 - Publish the release
 
 ## Website-only release
+
+To release changes to the website without publishing a new version of the CLI, just run [the merge workflow](https://github.com/LucasPickering/osrs-cli/actions/workflows/merge-release.yml).
