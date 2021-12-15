@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - release
   # Run master pipeline every day at midnight
   schedule:
     - cron: "0 0 * * *"
