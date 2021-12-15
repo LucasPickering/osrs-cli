@@ -17,11 +17,14 @@ jobs:
     if: ${{ github.ref == 'refs/heads/master' }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: release
+          fetch-depth: 0 # Fetch all branches
 
       - name: Merge master => release
         run: |
-          git checkout release
-          git merge --ff master
+          # We should be on the release branch because of the above step
+          git merge --ff origin/master
           git push
 
       - name: Create git tag
