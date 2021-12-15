@@ -16,12 +16,12 @@
 # Reference:
 # https://eugene-babichenko.github.io/blog/2020/05/09/github-actions-cross-platform-auto-releases/
 
-name: release
+name: Release
 on:
   push:
     # Enable when testing release infrastructure on a branch.
     # branches:
-    #   - release-ci
+    # - release-testing
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
@@ -44,6 +44,7 @@ jobs:
           # See: https://github.community/t5/GitHub-Actions/How-to-get-just-the-tag-name/m-p/32167/highlight/true#M1027
           echo "OSRS_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "version is: ${{ env.OSRS_VERSION }}"
+
       - name: Create GitHub release
         id: release
         uses: actions/create-release@v1
@@ -54,9 +55,36 @@ jobs:
           release_name: ${{ env.OSRS_VERSION }}
           draft: true
 
+  cargo-publish:
+    name: cargo-publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Rust files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.rustup
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+
+      # Enable after https://github.com/actions-rs/toolchain/issues/126
+      # - name: Install Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     profile: minimal
+      #     target: ${{ matrix.target }}
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CRATESIO_TOKEN }}
+
   build-release:
     name: build-release
-    needs: ["create-release"]
+    needs:
+      - create-release
     runs-on: ${{ matrix.os }}
     env:
       # Emit backtraces on panics.

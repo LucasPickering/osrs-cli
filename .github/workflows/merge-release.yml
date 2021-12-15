@@ -1,0 +1,36 @@
+# A manually-triggered workflow that:
+# - Merges `master` into `release`
+#   - This will trigger a new website deployment
+# - Creates a new git tag IFF the crate version is ahead of the most recent tag
+#   - This will trigger a release build
+
+name: Merge to release Branch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release-testing
+jobs:
+  merge-release:
+    runs-on: ubuntu-latest
+    # Don't do anything unless we're on master
+    if: ${{ github.ref == 'refs/heads/master' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Merge master => release
+        run: |
+          git checkout release
+          git merge --ff master
+          git push
+
+      - name: Create git tag
+        shell: bash
+        run: |
+          # Read current crate version from cargo
+          CRATE_VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages | .[] | select(.name == "osrs-cli") | .version')
+          # If this crate version isn't already tagged, then tag it now
+          if ! git tag | grep -qx $CRATE_VERSION; then
+            git tag $CRATE_VERSION
+            git push --tags
+          fi

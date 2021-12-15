@@ -1,9 +1,11 @@
 name: Build and Deploy Website
 
 on:
+  # Run on every PR and master just so we know the build didn't break
   push:
     branches:
       - master
+      - release
   pull_request:
 
 jobs:
@@ -24,17 +26,16 @@ jobs:
         run: npm run build
 
       - name: Archive build
-        if: ${{ github.ref == 'refs/heads/master' }}
         uses: actions/upload-artifact@v2
         with:
           name: build
           path: website/dist
 
-  # Deploy only on master
+  # Deploy only on release
   deploy:
     name: "Deploy"
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ github.ref == 'refs/heads/release' }}
     needs:
       - build
     steps:
