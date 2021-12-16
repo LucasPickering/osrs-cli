@@ -1,12 +1,13 @@
-use std::fmt::Display;
-
 use crate::{
     commands::Command,
     error::OsrsError,
     utils::{context::CommandContext, fmt, math},
 };
+use async_trait::async_trait;
+use derive_more::Display;
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::io::Write;
 use structopt::StructOpt;
 
 /// Calculate the probability of getting a drop.
@@ -34,8 +35,15 @@ pub struct CalcDropCommand {
     target: TargetRange,
 }
 
-impl Command for CalcDropCommand {
-    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for CalcDropCommand {
+    async fn execute(
+        &self,
+        mut context: CommandContext<O>,
+    ) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
         // Valid probability
         if !(0.0..=1.0).contains(&self.probability) {
             return Err(OsrsError::ArgsError(format!(
@@ -56,13 +64,13 @@ impl Command for CalcDropCommand {
             &mut self.target.as_values(iterations),
         );
 
-        println!(
+        context.println_fmt(format_args!(
             "{} chance of {} successes in {} attempts, with {} roll(s)/attempt",
             fmt::fmt_probability_long(result_prob),
             self.target,
             self.iterations,
-            self.rolls
-        );
+            self.rolls,
+        ))?;
 
         Ok(())
     }
@@ -121,10 +129,13 @@ fn parse_probability(s: &str) -> anyhow::Result<f64> {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Display)]
 enum TargetRange {
+    #[display(fmt = "{}", _0)]
     Eq(usize),
+    #[display(fmt = "≤{}", _0)]
     Lte(usize),
+    #[display(fmt = "≥{}", _0)]
     Gte(usize),
 }
 
@@ -136,16 +147,6 @@ impl TargetRange {
             Self::Eq(k) => Box::new(*k..=*k),
             Self::Lte(k) => Box::new(0..=*k),
             Self::Gte(k) => Box::new(*k..=iterations),
-        }
-    }
-}
-
-impl Display for TargetRange {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Eq(k) => write!(f, "{}", k),
-            Self::Lte(k) => write!(f, "≤{}", k),
-            Self::Gte(k) => write!(f, "≥{}", k),
         }
     }
 }

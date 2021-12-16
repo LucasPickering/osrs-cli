@@ -14,6 +14,8 @@ use crate::{
     },
     utils::context::CommandContext,
 };
+use async_trait::async_trait;
+use std::io::Write;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -23,8 +25,8 @@ pub enum CalcCommandType {
     Xp(CalcXpCommand),
 }
 
-impl CommandType for CalcCommandType {
-    fn command(&self) -> &dyn Command {
+impl<O: Write> CommandType<O> for CalcCommandType {
+    fn command(&self) -> &dyn Command<O> {
         match &self {
             Self::Drop(cmd) => cmd,
             Self::Stew(cmd) => cmd,
@@ -40,8 +42,12 @@ pub struct CalcCommand {
     pub cmd: CalcCommandType,
 }
 
-impl Command for CalcCommand {
-    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
-        self.cmd.command().execute(context)
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for CalcCommand {
+    async fn execute(&self, context: CommandContext<O>) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
+        self.cmd.command().execute(context).await
     }
 }

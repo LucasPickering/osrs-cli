@@ -1,5 +1,6 @@
-.vscode/
+/.vscode/
 /target/
 /website/dist/
 /website/node_modules/
+/website/wasm/
 osrs.json

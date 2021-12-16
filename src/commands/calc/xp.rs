@@ -1,11 +1,14 @@
 use crate::{
     commands::Command,
+    config::OsrsConfig,
     error::OsrsError,
     utils::{
         context::CommandContext, fmt, hiscore::HiscorePlayer, skill::Skill,
     },
 };
+use async_trait::async_trait;
 use colored::*;
+use std::io::Write;
 use structopt::StructOpt;
 
 /// A list of the XP total required for each level. The index is (level-1), so
@@ -99,7 +102,10 @@ pub struct CalcXpCommand {
 }
 
 impl CalcXpCommand {
-    fn get_source_xp(&self, context: &CommandContext) -> anyhow::Result<usize> {
+    async fn get_source_xp(
+        &self,
+        config: &OsrsConfig,
+    ) -> anyhow::Result<usize> {
         match &self.source {
             // Use a given xp value
             SourceOptions {
@@ -124,11 +130,11 @@ impl CalcXpCommand {
                 player,
                 skill: Some(skill),
             } => {
-                let player = HiscorePlayer::load_from_args(
-                    context.config(),
-                    player.as_slice(),
-                )?;
-                Ok(player.skill(*skill).xp)
+                let player =
+                    HiscorePlayer::load_from_args(config, player.as_slice())
+                        .await?;
+                // If skill data isn't available, just default to 0
+                Ok(player.skill(*skill).map(|s| s.xp).unwrap_or(0))
             }
 
             // Anything else is invalid input, freak out!
@@ -177,11 +183,18 @@ impl CalcXpCommand {
     }
 }
 
-impl Command for CalcXpCommand {
-    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
-        let source_xp = self.get_source_xp(context)?;
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for CalcXpCommand {
+    async fn execute(
+        &self,
+        mut context: CommandContext<O>,
+    ) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
+        let source_xp = self.get_source_xp(context.config()).await?;
         let dest_xp = self.get_dest_xp(source_xp)?;
-        println!(
+        context.println_fmt(format_args!(
             "{} XP (Level {}) => {} XP (Level {}) = {}",
             fmt::fmt_int(&source_xp),
             xp_to_level(source_xp),
@@ -197,7 +210,7 @@ impl Command for CalcXpCommand {
             )
             .blue()
             .bold()
-        );
+        ))?;
         Ok(())
     }
 }

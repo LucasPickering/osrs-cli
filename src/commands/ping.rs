@@ -1,10 +1,12 @@
 use crate::{
     commands::Command, error::OsrsError, utils::context::CommandContext,
 };
-use std::process;
+use async_trait::async_trait;
+use std::io::Write;
 use structopt::StructOpt;
 
 /// Run a network ping against a world
+#[cfg_attr(wasm, allow(unused))]
 #[derive(Debug, StructOpt)]
 pub struct PingCommand {
     /// The number of the world you want to ping
@@ -14,8 +16,16 @@ pub struct PingCommand {
     count: Option<usize>,
 }
 
-impl Command for PingCommand {
-    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for PingCommand {
+    // Native implementation
+    #[cfg(not(wasm))]
+    async fn execute(&self, _context: CommandContext<O>) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
+        use std::process;
+
         if self.world < 301 {
             return Err(OsrsError::ArgsError(
                 "Invalid world: Must be at least 301".into(),
@@ -52,5 +62,17 @@ impl Command for PingCommand {
         let mut child = result.expect("ping command failed to start");
         child.wait()?;
         Ok(())
+    }
+
+    // Browser implementation
+    #[cfg(wasm)]
+    async fn execute(&self, _context: CommandContext<O>) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
+        Err(OsrsError::UnsupportedEnvironment(
+            "Ping not supported in browser".into(),
+        )
+        .into())
     }
 }

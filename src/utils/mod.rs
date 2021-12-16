@@ -1,3 +1,5 @@
+#[cfg(wasm)]
+pub mod browser;
 pub mod context;
 pub mod fmt;
 pub mod hiscore;

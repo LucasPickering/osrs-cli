@@ -1,21 +1,60 @@
 //! Utilities related to HTTP requests
 
+use reqwest::Client;
 use serde::de::DeserializeOwned;
 use std::{
     ops::Deref,
     sync::{RwLock, RwLockReadGuard, TryLockError},
 };
-use ureq::{Agent, AgentBuilder};
 
-/// Get an HTTP agent, for making requests. This should be used for *all* HTTP
-/// requests, because it provides important configuration on the agent.
-pub fn agent() -> Agent {
-    AgentBuilder::new()
-        // The OSRS Wiki requests we set this for any requests to their API, but
-        // we might as well just put it on all requests for consistency
-        // https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Please_set_a_descriptive_User-Agent!
-        .user_agent(&format!("osrs-cli/{}", env!("CARGO_PKG_VERSION")))
-        .build()
+/// Perform an HTTP GET request.
+pub async fn get(
+    path: &str,
+    query_params: &[(&str, &str)],
+) -> anyhow::Result<String> {
+    let response = http_client()?.get(path).query(query_params).send().await?;
+    let body = response.error_for_status()?.text().await?;
+    Ok(body)
+}
+
+/// TODO
+pub async fn get_json<T: DeserializeOwned>(
+    path: &str,
+    query_params: &[(&str, &str)],
+) -> anyhow::Result<T> {
+    // TODO after hiscore API is proxied through JSON, merge this with the
+    // default request since all requests will be JSON. Also make sure to set
+    // Accept: application/json
+    let body = get(path, query_params).await?;
+    Ok(serde_json::from_str(body.as_str())?)
+}
+
+/// Build a URL from a base path and list of query params. Each param's value
+/// will be encoded
+pub fn url(path: &str, query_params: &[(&str, &str)]) -> String {
+    let params_vec: Vec<String> = query_params
+        .iter()
+        .map(|(param, value)| {
+            format!("{}={}", param, urlencoding::encode(value))
+        })
+        .collect();
+    format!("{}?{}", path, params_vec.join(","))
+}
+
+/// Build an HTTP client, for making requests. This client should be used for
+/// *all* requests from the app, so we guarantee consistency of HTTP headers.
+fn http_client() -> anyhow::Result<Client> {
+    let builder = Client::builder();
+
+    // The OSRS Wiki requests we set this for any requests to their API, but we
+    // might as well just put it on all requests for consistency. Reqwest
+    // doesn't support setting User-Agent in Wasm though, since the browser sets
+    // that field itself. https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Please_set_a_descriptive_User-Agent!
+    #[cfg(not(wasm))]
+    let builder =
+        builder.user_agent(concat!("osrs-cli/", env!("CARGO_PKG_VERSION")));
+
+    Ok(builder.build()?)
 }
 
 /// A write-once cache for an HTTP URL. The first time the value is requested,
@@ -40,7 +79,7 @@ impl<T: DeserializeOwned> HttpCache<T> {
     /// Load the value via HTTP if necessary, then return it. The returned
     /// value will be wrapped in a guard value that implements `Deref` to
     /// expose its inner value, meaning it can only be obtained by reference.
-    pub fn load(&self) -> anyhow::Result<CacheGuard<T>> {
+    pub async fn load(&self) -> anyhow::Result<CacheGuard<'_, T>> {
         /// TryLockError doesn't implement Send because it carries the guard,
         /// which is really annoying. To get around that we throw the error
         /// itself away and just hold the string. This is kinda shitty but
@@ -56,7 +95,7 @@ impl<T: DeserializeOwned> HttpCache<T> {
 
         if !is_loaded {
             // Load the data from HTTP, then store it in the cache
-            let response = agent().get(&self.url).call()?.into_json()?;
+            let response = get_json(&self.url, &[]).await?;
             let mut data_ref = self.data.try_write().map_err(map_lock_err)?;
             *data_ref = Some(response);
         }

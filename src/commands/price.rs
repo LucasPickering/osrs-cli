@@ -6,7 +6,9 @@ use crate::{
         item::{ItemPrice, WIKI_ITEM_CLIENT},
     },
 };
-use prettytable::{cell, row, Table};
+use async_trait::async_trait;
+use prettytable::{row, Table};
+use std::io::Write;
 use structopt::StructOpt;
 
 /// Search for Grand Exchange item prices
@@ -17,11 +19,19 @@ pub struct PriceCommand {
     query: Vec<String>,
 }
 
-impl Command for PriceCommand {
-    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for PriceCommand {
+    async fn execute(
+        &self,
+        mut context: CommandContext<O>,
+    ) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
         let query = self.query.join(" ");
         let items: Vec<(String, ItemPrice)> = WIKI_ITEM_CLIENT
-            .search_prices(&query)?
+            .search_prices(&query)
+            .await?
             .into_iter()
             // Filter out items that have no price. Unpack into a tuple here
             // too so we can enforce that the price is populated
@@ -29,7 +39,7 @@ impl Command for PriceCommand {
             .collect();
 
         if items.is_empty() {
-            println!("No results");
+            context.println("No results")?;
         } else {
             let mut table = Table::new();
             table.set_format(
@@ -47,7 +57,7 @@ impl Command for PriceCommand {
                 ]);
             }
 
-            table.printstd();
+            context.print_table(&table)?;
         }
 
         Ok(())

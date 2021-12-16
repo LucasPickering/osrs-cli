@@ -5,6 +5,8 @@ use crate::{
     },
     utils::context::CommandContext,
 };
+use async_trait::async_trait;
+use std::io::Write;
 use structopt::StructOpt;
 
 mod get;
@@ -16,8 +18,8 @@ pub enum ConfigCommandType {
     Set(ConfigSetCommand),
 }
 
-impl CommandType for ConfigCommandType {
-    fn command(&self) -> &dyn Command {
+impl<O: Write> CommandType<O> for ConfigCommandType {
+    fn command(&self) -> &dyn Command<O> {
         match &self {
             Self::Get(cmd) => cmd,
             Self::Set(cmd) => cmd,
@@ -32,8 +34,12 @@ pub struct ConfigCommand {
     pub cmd: ConfigCommandType,
 }
 
-impl Command for ConfigCommand {
-    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
-        self.cmd.command().execute(context)
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for ConfigCommand {
+    async fn execute(&self, context: CommandContext<O>) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
+        self.cmd.command().execute(context).await
     }
 }
