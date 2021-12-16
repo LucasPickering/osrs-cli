@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 ---
 
 # Usage Guide
@@ -148,6 +148,8 @@ osrs wiki one small favour
 ```
 
 ### Ping a world
+
+**Note: Not available in the web version, because of limitations in the browser**
 
 Curious how laggy a world will be? Ping it!
 

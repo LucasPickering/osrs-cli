@@ -1,10 +1,11 @@
-use std::iter;
+use std::{io::Write, iter};
 
 use crate::{
     commands::Command,
     error::OsrsError,
     utils::{context::CommandContext, fmt, math},
 };
+use async_trait::async_trait;
 use prettytable::{color, format::Alignment, Attr, Cell, Row, Table};
 use structopt::StructOpt;
 
@@ -34,8 +35,15 @@ pub struct CalcStewCommand {
     total_doses: usize,
 }
 
-impl Command for CalcStewCommand {
-    fn execute(&self, _context: &CommandContext) -> anyhow::Result<()> {
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for CalcStewCommand {
+    async fn execute(
+        &self,
+        mut context: CommandContext<O>,
+    ) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
         if self.boost > MAX_BOOST {
             return Err(OsrsError::ArgsError(format!(
                 "Maximum boost is {} levels",
@@ -98,13 +106,13 @@ impl Command for CalcStewCommand {
             ));
         }
 
-        println!(
+        context.println(
             "The bolded column indicates the requested boost. \
             The green cell is the optimal number of doses to use per stew, to \
             maximize your odds of hitting the boost.
-            "
-        );
-        table.printstd();
+            ",
+        )?;
+        context.print_table(&table)?;
 
         Ok(())
     }

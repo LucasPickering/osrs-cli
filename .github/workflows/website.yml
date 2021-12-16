@@ -20,7 +20,6 @@ jobs:
         working-directory: website
         run: npm install
 
-      # We have to build *first* so we can get typedefs from the wasm crate
       - name: Build
         working-directory: website
         run: npm run build

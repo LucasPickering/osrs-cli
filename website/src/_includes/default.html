@@ -8,7 +8,8 @@
     <!-- TODO Enable once we have a favicon -->
     <!-- <link rel="icon" href="/favicon.ico" /> -->
     <link rel="stylesheet" href="/styles.css" />
-    <title>{{title}}</title>
+    <title>OSRS CLI</title>
+    {{ head | safe }}
   </head>
   <body>
     <div id="root">
@@ -16,6 +17,7 @@
         <nav class="nav-content">
           <div>
             <a href="/">Home</a>
+            <a href="/terminal">Try It!</a>
             <a href="/install">Install</a>
             <a href="/guide">Guide</a>
           </div>
@@ -29,7 +31,7 @@
         </nav>
       </header>
 
-      <main id="main-content">{{ content | safe }}</main>
+      {{ content | safe }}
     </div>
   </body>
 </html>

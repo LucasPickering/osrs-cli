@@ -11,4 +11,17 @@ pub enum OsrsError {
 
     #[error("Invalid level. Must be between 1 and 127, got: {0}")]
     InvalidLevel(usize),
+
+    /// User attempted an action that isn't supported in this environment. This
+    /// error *shouldn't* ever happen. Could be something like attempting an
+    /// action in the browser that's only supported natively.
+    #[cfg(wasm)]
+    #[error("Not supported in this environment: {0}")]
+    UnsupportedEnvironment(String),
+
+    /// Error on a dynamic cast of a JS type when attempting to get a string.
+    /// Indicates an implementation bug.
+    #[cfg(wasm)]
+    #[error("Unexpected type of JavaScript value, expected String")]
+    ExpectedString,
 }

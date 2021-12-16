@@ -1,23 +1,17 @@
 use crate::error::OsrsError;
+use serde::Deserialize;
 use std::{fmt::Display, str::FromStr};
 
 /// A macro to reduce copy-pasta for defining the list of all skills
 macro_rules! skills {
     ($(($skill:ident, $aliases:expr)),+ $(,)?) => {
         /// One player skill (e.g. Attack, Woodcutting)
-        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Deserialize)]
         pub enum Skill {
             $(
                 $skill,
             )+
         }
-
-        /// List of all skills, in the order that the hiscore uses.
-        pub const SKILLS: &[Skill] = &[
-            $(
-                Skill::$skill,
-            )+
-        ];
 
         /// An array of: (skill, full name, list of aliases). This can be used
         /// to map to/from strings.

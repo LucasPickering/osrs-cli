@@ -12,3 +12,9 @@ $spacingMedium: 16px;
 $spacingLarge: 24px;
 
 $maxContentWidth: 800px;
+
+// This object gets passed *directly* as the terminal theme, so the keys match
+// https://xtermjs.org/docs/api/terminal/interfaces/itheme/
+:export {
+  background: $backgroundColorDark;
+}

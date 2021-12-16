@@ -1,41 +1,38 @@
+//! This command is a container for additional subcommands related to farming
+//! calculators.
+
+mod herb;
+
 use crate::{
-    commands::{
-        config::{get::ConfigGetCommand, set::ConfigSetCommand},
-        Command, CommandType,
-    },
+    commands::{calc::farm::herb::CalcFarmHerbCommand, Command, CommandType},
     utils::context::CommandContext,
 };
 use async_trait::async_trait;
 use std::io::Write;
 use structopt::StructOpt;
 
-mod get;
-mod set;
-
 #[derive(Debug, StructOpt)]
-pub enum ConfigCommandType {
-    Get(ConfigGetCommand),
-    Set(ConfigSetCommand),
+pub enum CalcFarmCommandType {
+    Herb(CalcFarmHerbCommand),
 }
 
-impl<O: Write> CommandType<O> for ConfigCommandType {
+impl<O: Write> CommandType<O> for CalcFarmCommandType {
     fn command(&self) -> &dyn Command<O> {
         match &self {
-            Self::Get(cmd) => cmd,
-            Self::Set(cmd) => cmd,
+            Self::Herb(cmd) => cmd,
         }
     }
 }
 
-/// Get and set configuration values.
+/// Calculators related to farming
 #[derive(Debug, StructOpt)]
-pub struct ConfigCommand {
+pub struct CalcFarmCommand {
     #[structopt(subcommand)]
-    pub cmd: ConfigCommandType,
+    pub cmd: CalcFarmCommandType,
 }
 
 #[async_trait(?Send)]
-impl<O: Write> Command<O> for ConfigCommand {
+impl<O: Write> Command<O> for CalcFarmCommand {
     async fn execute(&self, context: CommandContext<O>) -> anyhow::Result<()>
     where
         O: 'async_trait,
