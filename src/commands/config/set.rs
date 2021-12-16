@@ -1,7 +1,9 @@
 use crate::{
     commands::Command, config::OsrsConfig, utils::context::CommandContext,
 };
+use async_trait::async_trait;
 use figment::{providers::Serialized, Figment};
+use std::io::Write;
 use structopt::StructOpt;
 
 /// Set a configuration value
@@ -13,8 +15,15 @@ pub struct ConfigSetCommand {
     pub value: String,
 }
 
-impl Command for ConfigSetCommand {
-    fn execute(&self, context: &CommandContext) -> anyhow::Result<()> {
+#[async_trait(?Send)]
+impl<O: Write> Command<O> for ConfigSetCommand {
+    async fn execute(
+        &self,
+        mut context: CommandContext<O>,
+    ) -> anyhow::Result<()>
+    where
+        O: 'async_trait,
+    {
         // Update the given field in the config
         let current_cfg_value = context.config();
         let new_cfg_value: OsrsConfig =
@@ -26,12 +35,15 @@ impl Command for ConfigSetCommand {
         // is mostly to prevent a success message when they put in a bogus key.
         if &new_cfg_value != current_cfg_value {
             new_cfg_value.save()?;
-            println!("Set {} = {}", self.key, self.value);
+            context.println_fmt(format_args!(
+                "Set {} = {}",
+                self.key, self.value
+            ))?;
         } else {
-            println!(
+            context.println(
                 "No changes. \
                 Try `osrs config get` to see available keys & current settings."
-            )
+            )?;
         }
 
         Ok(())

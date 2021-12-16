@@ -37,8 +37,8 @@ impl WikiItemClient {
 
     /// Search items by name. This will do a caseless substring match, and
     /// return all items that match.
-    pub fn search(&self, query: &str) -> anyhow::Result<Vec<Item>> {
-        let items = self.item_mapping.load()?;
+    pub async fn search(&self, query: &str) -> anyhow::Result<Vec<Item>> {
+        let items = self.item_mapping.load().await?;
 
         // We want caseless search, so convert everything to lowercase
         // If this turns out to be really slow we could use a regex instead
@@ -54,12 +54,12 @@ impl WikiItemClient {
 
     /// Search items by name with price data. This uses the same search criteria
     /// as [Self::search].
-    pub fn search_prices(
+    pub async fn search_prices(
         &self,
         query: &str,
     ) -> anyhow::Result<Vec<ItemWithPrice>> {
-        let items = self.search(query)?;
-        let item_prices = &self.prices.load()?.data;
+        let items = self.search(query).await?;
+        let item_prices = &self.prices.load().await?.data;
         // Join price data in for each item
         let items_with_prices = items
             .into_iter()

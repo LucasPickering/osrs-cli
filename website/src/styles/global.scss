@@ -25,6 +25,8 @@ pre {
 
 #root {
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 #main-content {

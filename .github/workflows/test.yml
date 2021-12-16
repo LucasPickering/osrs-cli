@@ -44,6 +44,7 @@ jobs:
           args: -- --check
 
   # Run clippy and tests for both stable and nightly
+  # TODO run on wasm too
   lint-test:
     name: "Lint & Test"
     runs-on: ubuntu-latest
