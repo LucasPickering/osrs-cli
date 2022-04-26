@@ -43,20 +43,30 @@ jobs:
           command: fmt
           args: -- --check
 
-  # Run clippy and tests for both stable and nightly
-  # TODO run on wasm too
+  # Run clippy and tests for both stable and nightly, and every target
   lint-test:
     name: "Lint & Test"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # If you update stable, make sure to update Cargo.toml
-        # If you update nightly, make sure to update rust-toolchain.toml
-        rust: ["1.56", nightly-2021-12-10]
+        rust:
+          # If you update stable, make sure to update Cargo.toml
+          - "1.56"
+          # If you update nightly, make sure to update rust-toolchain.toml
+          - nightly-2021-12-10
+        target:
+          # Don't bother testing all targets because linting should only be
+          # different for wasm vs non-wasm
+          - x86_64-unknown-linux-gnu
+          - wasm32-unknown-unknown
+        exclude:
+          - rust: "1.56"
+            target: wasm32-unknown-unknown
     env:
       # This overrides rust-toolchain.toml
       RUSTUP_TOOLCHAIN: ${{ matrix.rust }}
+      CARGO_BUILD_TARGET: ${{ matrix.target }}
     steps:
       - uses: actions/checkout@master
 
@@ -68,7 +78,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}
 
       # Enable after https://github.com/actions-rs/toolchain/issues/126
       # - name: Install Rust
@@ -78,8 +88,11 @@ jobs:
       #     override: true
       #     profile: minimal
       #     components: clippy
-      - name: Install Clippy
-        run: rustup component add clippy
+
+      - name: Install Rustup Dependencies
+        run: |
+          rustup target add ${{ matrix.target }}
+          rustup component add clippy
 
       - name: Clippy
         uses: actions-rs/cargo@v1
@@ -89,5 +102,7 @@ jobs:
 
       - name: Tests
         uses: actions-rs/cargo@v1
+        # Tests don't work on wasm
+        if: ${{ matrix.target }} != wasm32-unknown-unknown
         with:
           command: test
