@@ -7,59 +7,6 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-// IDs are pulled from https://www.osrsbox.com/tools/item-search/
-
-pub const ITEM_ID_AIR_RUNE: usize = 556;
-pub const ITEM_ID_WATER_RUNE: usize = 555;
-pub const ITEM_ID_EARTH_RUNE: usize = 557;
-pub const ITEM_ID_FIRE_RUNE: usize = 554;
-pub const ITEM_ID_BODY_RUNE: usize = 559;
-pub const ITEM_ID_MIND_RUNE: usize = 558;
-pub const ITEM_ID_CHAOS_RUNE: usize = 562;
-pub const ITEM_ID_DEATH_RUNE: usize = 560;
-pub const ITEM_ID_BLOOD_RUNE: usize = 565;
-pub const ITEM_ID_WRATH_RUNE: usize = 21880;
-pub const ITEM_ID_COSMIC_RUNE: usize = 564;
-pub const ITEM_ID_NATURE_RUNE: usize = 561;
-pub const ITEM_ID_LAW_RUNE: usize = 563;
-pub const ITEM_ID_ASTRAL_RUNE: usize = 9075;
-pub const ITEM_ID_SOUL_RUNE: usize = 566;
-
-pub const ITEM_ID_COMPOST: usize = 6032;
-pub const ITEM_ID_SUPERCOMPOST: usize = 6034;
-pub const ITEM_ID_ULTRACOMPOST: usize = 21483;
-
-pub const ITEM_ID_GRIMY_GUAM_LEAF: usize = 199;
-pub const ITEM_ID_GUAM_SEED: usize = 5291;
-pub const ITEM_ID_GRIMY_MARRENTILL: usize = 201;
-pub const ITEM_ID_MARRENTILL_SEED: usize = 5292;
-pub const ITEM_ID_GRIMY_TARROMIN: usize = 203;
-pub const ITEM_ID_TARROMIN_SEED: usize = 5293;
-pub const ITEM_ID_GRIMY_HARRALANDER: usize = 205;
-pub const ITEM_ID_HARRALANDER_SEED: usize = 5294;
-pub const ITEM_ID_GOUTWEED: usize = 3261;
-pub const ITEM_ID_GOUT_TUBER: usize = 6311;
-pub const ITEM_ID_GRIMY_RANARR_WEED: usize = 207;
-pub const ITEM_ID_RANARR_SEED: usize = 5295;
-pub const ITEM_ID_GRIMY_TOADFLAX: usize = 3049;
-pub const ITEM_ID_TOADFLAX_SEED: usize = 5296;
-pub const ITEM_ID_GRIMY_IRIT: usize = 209;
-pub const ITEM_ID_IRIT_SEED: usize = 5297;
-pub const ITEM_ID_GRIMY_AVANTOE: usize = 211;
-pub const ITEM_ID_AVANTOE_SEED: usize = 5298;
-pub const ITEM_ID_GRIMY_KWUARM: usize = 213;
-pub const ITEM_ID_KWUARM_SEED: usize = 5299;
-pub const ITEM_ID_GRIMY_SNAPDRAGON: usize = 3051;
-pub const ITEM_ID_SNAPDRAGON_SEED: usize = 5300;
-pub const ITEM_ID_GRIMY_CADANTINE: usize = 215;
-pub const ITEM_ID_CADANTINE_SEED: usize = 5301;
-pub const ITEM_ID_GRIMY_LANTADYME: usize = 2485;
-pub const ITEM_ID_LANTADYME_SEED: usize = 5302;
-pub const ITEM_ID_GRIMY_DWARF_WEED: usize = 217;
-pub const ITEM_ID_DWARF_WEED_SEED: usize = 5303;
-pub const ITEM_ID_GRIMY_TORSTOL: usize = 219;
-pub const ITEM_ID_TORSTOL_SEED: usize = 5304;
-
 lazy_static! {
     /// We share a single client here for the whole program so that it can
     /// persist caches for the data it loads.
@@ -86,26 +33,6 @@ impl WikiItemClient {
                 "https://prices.runescape.wiki/api/v1/osrs/latest".into(),
             ),
         }
-    }
-
-    /// Get price data for a singular item, by its ID. Price data is cached for
-    /// all items after the first lookup, so this will only ever make a request
-    /// once for the program's lifetime.
-    pub fn get_price(
-        &self,
-        item_id: usize,
-    ) -> anyhow::Result<Option<ItemPrice>> {
-        let item_price = self.prices.load()?.data.get(&item_id).copied();
-        Ok(item_price)
-    }
-
-    /// Get a singular price value for an item. This will take the recent high
-    /// and low, and average them.
-    pub fn get_avg_price(
-        &self,
-        item_id: usize,
-    ) -> anyhow::Result<Option<usize>> {
-        Ok(self.get_price(item_id)?.and_then(|price| price.avg()))
     }
 
     /// Search items by name. This will do a caseless substring match, and

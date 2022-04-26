@@ -12,7 +12,6 @@ layout: default
   - [Calculators](#calculators)
     - [Drop Rate](#calculate-drop-rate)
     - [XP/Levels](#calculate-xp-to-a-level)
-    - [Herb Farming](#calculate-herb-patch-output)
     - [Spicy Stews](#calculate-spicy-stew-boosts)
   - [Wiki Search](#search-the-wiki)
   - [Ping](#ping-a-world)
@@ -121,52 +120,6 @@ $ osrs calc xp --from-lvl 1 --plus-xp 13750
 0 XP (Level 1) => 13,750 XP (Level 30) = 13,750 XP
 ```
 
-#### Calculate herb patch output
-
-Picking which herb to grow is complicated. It involves a lot of math and there's a lot of different potential buffs to be applied. This calculator lets you configure your buffs once, then easily check the profitability (as well as XP gain) from all herbs at any time. [Start by using the configuration wizard](#herb-calculator-configuration-wizard) to define your patches and buffs.
-
-```
-osrs config set-herb
-```
-
-This will ask a bunch of questions about what patches, gear, and buffs you have. Once that's done, run the calculator with:
-
-```
-> osrs calc farm herb
-
-Farming level: 94
-Patches:
- - Ardougne
- - Catherby (+10% yield)
- - Falador (+10% XP)
- - Farming Guild (+5% yield)
- - Hosidius (disease-free, +5% yield)
- - Port Phasmatys
- - Troll Stronghold (disease-free)
- - Weiss (disease-free)
-Magic secateurs: Yes
-Farming cape: No
-Bottomless bucket: Yes
-Resurrect crops: No
-Compost: Ultracompost
-Anima plant: None
-
-Survival chance is an average across all patches. Yield values take into account survival chance.
-+-------------+-----+-------+-----------+---------+---------+-------+------------+
-| Herb        | Lvl | Surv% | Yield/Run |  XP/Run |   Seed$ | Herb$ | Profit/Run |
-+-------------+-----+-------+-----------+---------+---------+-------+------------+
-| Guam leaf   |   9 | 95.7% |    69.601 |  1246.0 |      22 |    20 |     -1,308 |
-| Marrentill  |  14 | 95.7% |    69.601 |  1440.0 |       7 |    18 |     -1,328 |
-|                              (output abbreviated)                              |
-| Dwarf weed  |  79 | 95.7% |    70.435 | 15175.6 |     578 |   914 |     57,231 |
-| Torstol     |  85 | 95.7% |    70.435 | 17696.7 |  54,036 | 7,695 |    107,185 |
-+-------------+-----+-------+-----------+---------+---------+-------+------------+
-```
-
-If you unlock a new patch, get new gear, etc., you can easily update the config by running `osrs config set-herb` again.
-
-Note: This calculator assumes you'll plant the same herb in all patches. You _could_ min/max more by putting different herbs in different patches, but that is not supported (yet). If you need that, feel free to request it.
-
 #### Calculate spicy stew boosts
 
 Tired of training for achievement diaries? Ever wondered how many doses of spice you should collect before attempting a spicy stew boost? This calculator will help you out!
@@ -221,13 +174,3 @@ osrs config set default_player <username>
 ```
 
 Then you can just use `osrs hiscore` to do a lookup on the default player. This username will also be used for any other player lookups, e.g. `osrs calc xp --skill smithing`.
-
-#### Herb calculator configuration wizard
-
-The herb calculator has a _lot_ of options. Fortunately, they can easily all be configured with the `config set-herb` subcommand:
-
-```
-osrs config set-herb
-```
-
-Fill in all the requested information, then those settings will be persisted so that any time you run `osrs calc farm herb`, it will use them. If you need to make changes to the settings, just run `osrs config set-herb` again.

@@ -37,42 +37,6 @@ osrs calc xp --from-xp 100000 --to-lvl 80
 osrs calc xp --from-lvl 50 --to-lvl 60
 ```
 
-#### Calculate herb patch output
-
-Picking which herb to grow is complicated. It involves a lot of math and there's a lot of different potential buffs to be applied. This calculator lets you configure your buffs once, then easily check the profitability (as well as XP gain) from all herbs at any time. Start by configuring your herb setup with:
-
-```
-osrs config set-herb
-```
-
-This will ask a bunch of questions about what patches, gear, and buffs you have. Once that's done, run the calculator with:
-
-```
-$ osrs calc farm herb
-Farming level: 26
-Patches:
- - Ardougne
- - Catherby (+5% yield)
- - Falador (+10% XP)
- - Port Phasmatys
-Magic secateurs: No
-Farming cape: No
-Bottomless bucket: No
-Resurrect crops: No
-Compost: Supercompost
-Anima plant: None
-
-Survival chance is an average across all patches. Yield values take into account survival chance.
-+-------------+-----+-------+-----------+--------+-------+-------+------------+
-| Herb        | Lvl | Surv% | Yield/Run | XP/Run | Seed$ | Herb$ | Profit/Run |
-+-------------+-----+-------+-----------+--------+-------+-------+------------+
-| Guam leaf   |   9 | 86.6% |    20.548 |  398.9 |     6 |    20 |     -1,183 |
-| Marrentill  |  14 | 86.6% |    20.765 |  462.2 |     5 |    20 |     -1,175 |
-| Tarromin    |  19 | 86.6% |    20.961 |  536.7 |    10 |   121 |        926 |
-| Harralander |  26 | 86.6% |    21.365 |  691.2 |    32 |   696 |     13,172 |
-+-------------+-----+-------+-----------+--------+-------+-------+------------+
-```
-
 ### Calculate spicy stew boosts
 
 ```

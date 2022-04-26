@@ -1,3 +1,4 @@
+.vscode/
 /target/
 /website/dist/
 /website/node_modules/

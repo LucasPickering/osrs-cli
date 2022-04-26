@@ -11,10 +11,4 @@ pub enum OsrsError {
 
     #[error("Invalid level. Must be between 1 and 127, got: {0}")]
     InvalidLevel(usize),
-
-    #[error("Invalid configuration: {0}")]
-    InvalidConfig(String),
-
-    #[error("Missing configuration for field `{key}`. {message}")]
-    Unconfigured { key: String, message: String },
 }

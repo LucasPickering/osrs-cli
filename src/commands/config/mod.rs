@@ -1,9 +1,6 @@
 use crate::{
     commands::{
-        config::{
-            get::ConfigGetCommand, set::ConfigSetCommand,
-            set_herb::ConfigSetHerbCommand,
-        },
+        config::{get::ConfigGetCommand, set::ConfigSetCommand},
         Command, CommandType,
     },
     utils::context::CommandContext,
@@ -12,13 +9,11 @@ use structopt::StructOpt;
 
 mod get;
 mod set;
-mod set_herb;
 
 #[derive(Debug, StructOpt)]
 pub enum ConfigCommandType {
     Get(ConfigGetCommand),
     Set(ConfigSetCommand),
-    SetHerb(ConfigSetHerbCommand),
 }
 
 impl CommandType for ConfigCommandType {
@@ -26,7 +21,6 @@ impl CommandType for ConfigCommandType {
         match &self {
             Self::Get(cmd) => cmd,
             Self::Set(cmd) => cmd,
-            Self::SetHerb(cmd) => cmd,
         }
     }
 }
