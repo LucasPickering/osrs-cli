@@ -1,12 +1,13 @@
 #![deny(clippy::all)]
 #![cfg_attr(nightly, feature(backtrace))]
 
-use osrs_cli::OsrsOptions;
-use std::{io, process};
-use structopt::StructOpt;
-
+#[cfg(not(wasm))]
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
+    use osrs_cli::OsrsOptions;
+    use std::{io, process};
+    use structopt::StructOpt;
+
     let options = OsrsOptions::from_args();
     let exit_code = match options.run(io::stdout()).await {
         Ok(()) => 0,
@@ -28,4 +29,10 @@ async fn main() {
         }
     };
     process::exit(exit_code);
+}
+
+#[cfg(wasm)]
+fn main() {
+    // Delete after https://github.com/rust-lang/cargo/issues/3138
+    println!("Bin not supported on Wasm");
 }
