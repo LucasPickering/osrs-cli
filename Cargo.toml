@@ -8,7 +8,7 @@ name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
 # If you update this, make sure to update the version used in ci.yml
 rust-version = "1.56"
-version = "1.1.0"
+version = "2.0.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"] # Needed for wasm
