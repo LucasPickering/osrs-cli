@@ -9,6 +9,7 @@ module.exports = {
   target: "web",
   output: {
     path: path.resolve(__dirname, "dist/script"),
+    publicPath: "/script/",
     filename: "[name].js",
   },
 

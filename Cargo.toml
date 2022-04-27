@@ -15,6 +15,9 @@ crate-type = ["cdylib", "rlib"] # Needed for wasm
 name = "osrs_cli"
 path = "src/lib.rs"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
 # https://github.com/rust-lang/cargo/issues/3138 disable this for wasm
 [[bin]]
 name = "osrs"

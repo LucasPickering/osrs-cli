@@ -1,6 +1,6 @@
 ---
 layout: page
-head: <script src="/script/main.js" type="module" />
+head: <script src="/script/main.js" type="module"></script>
 ---
 
 # Old School RuneScape Command Line Interface
