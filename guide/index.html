@@ -8,7 +8,8 @@
     <!-- TODO Enable once we have a favicon -->
     <!-- <link rel="icon" href="/favicon.ico" /> -->
     <link rel="stylesheet" href="/styles.css" />
-    <title></title>
+    <title>OSRS CLI</title>
+    
   </head>
   <body>
     <div id="root">
@@ -16,6 +17,7 @@
         <nav class="nav-content">
           <div>
             <a href="/">Home</a>
+            <a href="/terminal">Try It!</a>
             <a href="/install">Install</a>
             <a href="/guide">Guide</a>
           </div>
@@ -29,7 +31,8 @@
         </nav>
       </header>
 
-      <main id="main-content"><h1 id="usage-guide" tabindex="-1">Usage Guide <a class="header-anchor" href="#usage-guide">#</a></h1>
+      
+<main id="main-content"><h1 id="usage-guide" tabindex="-1">Usage Guide <a class="header-anchor" href="#usage-guide">#</a></h1>
 <h2 id="table-of-contents" tabindex="-1">Table of Contents <a class="header-anchor" href="#table-of-contents">#</a></h2>
 <ul>
 <li><a href="#commands">Commands</a>
@@ -40,7 +43,6 @@
 <ul>
 <li><a href="#calculate-drop-rate">Drop Rate</a></li>
 <li><a href="#calculate-xp-to-a-level">XP/Levels</a></li>
-<li><a href="#calculate-herb-patch-output">Herb Farming</a></li>
 <li><a href="#calculate-spicy-stew-boosts">Spicy Stews</a></li>
 </ul>
 </li>
@@ -120,43 +122,6 @@ $ osrs calc xp --player swampletics --skill smithing --to-xp 12345678
 <pre><code>$ osrs calc xp --from-lvl 1 --plus-xp 13750
 0 XP (Level 1) =&gt; 13,750 XP (Level 30) = 13,750 XP
 </code></pre>
-<h4 id="calculate-herb-patch-output" tabindex="-1">Calculate herb patch output <a class="header-anchor" href="#calculate-herb-patch-output">#</a></h4>
-<p>Picking which herb to grow is complicated. It involves a lot of math and there's a lot of different potential buffs to be applied. This calculator lets you configure your buffs once, then easily check the profitability (as well as XP gain) from all herbs at any time. <a href="#herb-calculator-configuration-wizard">Start by using the configuration wizard</a> to define your patches and buffs.</p>
-<pre><code>osrs config set-herb
-</code></pre>
-<p>This will ask a bunch of questions about what patches, gear, and buffs you have. Once that's done, run the calculator with:</p>
-<pre><code>&gt; osrs calc farm herb
-
-Farming level: 94
-Patches:
- - Ardougne
- - Catherby (+10% yield)
- - Falador (+10% XP)
- - Farming Guild (+5% yield)
- - Hosidius (disease-free, +5% yield)
- - Port Phasmatys
- - Troll Stronghold (disease-free)
- - Weiss (disease-free)
-Magic secateurs: Yes
-Farming cape: No
-Bottomless bucket: Yes
-Resurrect crops: No
-Compost: Ultracompost
-Anima plant: None
-
-Survival chance is an average across all patches. Yield values take into account survival chance.
-+-------------+-----+-------+-----------+---------+---------+-------+------------+
-| Herb        | Lvl | Surv% | Yield/Run |  XP/Run |   Seed$ | Herb$ | Profit/Run |
-+-------------+-----+-------+-----------+---------+---------+-------+------------+
-| Guam leaf   |   9 | 95.7% |    69.601 |  1246.0 |      22 |    20 |     -1,308 |
-| Marrentill  |  14 | 95.7% |    69.601 |  1440.0 |       7 |    18 |     -1,328 |
-|                              (output abbreviated)                              |
-| Dwarf weed  |  79 | 95.7% |    70.435 | 15175.6 |     578 |   914 |     57,231 |
-| Torstol     |  85 | 95.7% |    70.435 | 17696.7 |  54,036 | 7,695 |    107,185 |
-+-------------+-----+-------+-----------+---------+---------+-------+------------+
-</code></pre>
-<p>If you unlock a new patch, get new gear, etc., you can easily update the config by running <code>osrs config set-herb</code> again.</p>
-<p>Note: This calculator assumes you'll plant the same herb in all patches. You <em>could</em> min/max more by putting different herbs in different patches, but that is not supported (yet). If you need that, feel free to request it.</p>
 <h4 id="calculate-spicy-stew-boosts" tabindex="-1">Calculate spicy stew boosts <a class="header-anchor" href="#calculate-spicy-stew-boosts">#</a></h4>
 <p>Tired of training for achievement diaries? Ever wondered how many doses of spice you should collect before attempting a spicy stew boost? This calculator will help you out!</p>
 <pre><code>&gt; osrs calc stew --doses 25 --boost 3
@@ -176,6 +141,7 @@ Survival chance is an average across all patches. Yield values take into account
 osrs wiki one small favour
 </code></pre>
 <h3 id="ping-a-world" tabindex="-1">Ping a world <a class="header-anchor" href="#ping-a-world">#</a></h3>
+<p><strong>Note: Not available in the web version, because of limitations in the browser</strong></p>
 <p>Curious how laggy a world will be? Ping it!</p>
 <pre><code>osrs ping 450
 </code></pre>
@@ -190,12 +156,8 @@ osrs config set default_player Lynx Titan # Set the default_player
 <pre><code>osrs config set default_player &lt;username&gt;
 </code></pre>
 <p>Then you can just use <code>osrs hiscore</code> to do a lookup on the default player. This username will also be used for any other player lookups, e.g. <code>osrs calc xp --skill smithing</code>.</p>
-<h4 id="herb-calculator-configuration-wizard" tabindex="-1">Herb calculator configuration wizard <a class="header-anchor" href="#herb-calculator-configuration-wizard">#</a></h4>
-<p>The herb calculator has a <em>lot</em> of options. Fortunately, they can easily all be configured with the <code>config set-herb</code> subcommand:</p>
-<pre><code>osrs config set-herb
-</code></pre>
-<p>Fill in all the requested information, then those settings will be persisted so that any time you run <code>osrs calc farm herb</code>, it will use them. If you need to make changes to the settings, just run <code>osrs config set-herb</code> again.</p>
 </main>
+
     </div>
   </body>
 </html>
