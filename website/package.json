@@ -38,9 +38,9 @@
   "homepage": "https://osrs.lucaspickering.me",
   "dependencies": {
     "osrs-cli": "file:./wasm",
-    "simple-shell": "file:../../simple-shell/dist",
     "xterm": "^4.16.0",
-    "xterm-addon-fit": "^0.5.0"
+    "xterm-addon-fit": "^0.5.0",
+    "xterm-shell": "^1.0.2"
   },
   "devDependencies": {
     "@11ty/eleventy": "^0.12.1",

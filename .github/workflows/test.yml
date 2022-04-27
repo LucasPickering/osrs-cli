@@ -103,6 +103,6 @@ jobs:
       - name: Tests
         uses: actions-rs/cargo@v1
         # Tests don't work on wasm
-        if: ${{ matrix.target }} != wasm32-unknown-unknown
+        if: ${{ matrix.target != 'wasm32-unknown-unknown' }}
         with:
           command: test
