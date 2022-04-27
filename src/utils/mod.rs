@@ -7,3 +7,4 @@ pub mod http;
 pub mod item;
 pub mod math;
 pub mod skill;
+pub mod table;

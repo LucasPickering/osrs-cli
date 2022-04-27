@@ -1,4 +1,4 @@
 [toolchain]
 # If you update this, make sure to update the version used in ci.yml
-channel = "nightly-2021-12-10"
+channel = "nightly-2022-04-25"
 components = ["cargo", "clippy", "rustfmt"]

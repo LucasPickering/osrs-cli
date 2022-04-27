@@ -1,5 +1,5 @@
 use crate::config::OsrsConfig;
-use prettytable::Table;
+use comfy_table::Table;
 use std::{fmt::Arguments, io::Write};
 
 /// A helper type to encapsulate values that we are likely to use multiple
@@ -43,7 +43,7 @@ impl<O: Write> CommandContext<O> {
     /// Print a pretty table to output
     pub fn print_table(&mut self, table: &Table) -> anyhow::Result<()> {
         // TODO fix colors
-        table.print(&mut self.output)?;
+        self.println(&table.to_string())?;
         Ok(())
     }
 }

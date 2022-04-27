@@ -1,9 +1,11 @@
 use crate::{
     commands::Command,
-    utils::{context::CommandContext, fmt, hiscore::HiscorePlayer},
+    utils::{
+        context::CommandContext, fmt, hiscore::HiscorePlayer, table::TableExt,
+    },
 };
 use async_trait::async_trait;
-use prettytable::{row, Table};
+use comfy_table::{presets, CellAlignment, Table};
 use std::io::Write;
 use structopt::StructOpt;
 
@@ -31,16 +33,24 @@ impl<O: Write> Command<O> for HiscoreCommand {
         // Print a table for skills
         context.println("Skills")?;
         let mut table = Table::new();
-        table.set_format(
-            *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
-        );
-        table.set_titles(row!["Skill", r->"Rank", r->"Level", r->"XP"]);
+        table
+            .load_preset(presets::ASCII_BORDERS_ONLY_CONDENSED)
+            .set_aligned_header([
+                ("Skill", CellAlignment::Left),
+                ("Rank", CellAlignment::Right),
+                ("Level", CellAlignment::Right),
+                ("XP", CellAlignment::Right),
+            ]);
+        for col in [1, 2, 3] {
+            let column = table.get_column_mut(col).unwrap();
+            column.set_cell_alignment(CellAlignment::Right);
+        }
         for skill in player.skills {
-            table.add_row(row![
-                skill.name,
-                r->fmt::fmt_int(&skill.rank),
-                r->fmt::fmt_int(&skill.level),
-                r->fmt::fmt_int(&skill.xp),
+            table.add_row(vec![
+                skill.name.to_string(),
+                fmt::fmt_int(&skill.rank),
+                fmt::fmt_int(&skill.level),
+                fmt::fmt_int(&skill.xp),
             ]);
         }
         context.print_table(&table)?;
@@ -49,15 +59,18 @@ impl<O: Write> Command<O> for HiscoreCommand {
         // Print a table for minigames/bosses/etc.
         context.println("Minigames")?;
         let mut table = Table::new();
-        table.set_format(
-            *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
-        );
-        table.set_titles(row!["Minigame", r->"Rank", r->"Score"]);
+        table
+            .load_preset(presets::ASCII_BORDERS_ONLY_CONDENSED)
+            .set_aligned_header([
+                ("Minigame", CellAlignment::Left),
+                ("Rank", CellAlignment::Right),
+                ("Score", CellAlignment::Right),
+            ]);
         for minigame in player.minigames {
-            table.add_row(row![
+            table.add_row(vec![
                 minigame.name,
-                r->fmt::fmt_int(&minigame.rank),
-                r->fmt::fmt_int(&minigame.score),
+                fmt::fmt_int(&minigame.rank),
+                fmt::fmt_int(&minigame.score),
             ]);
         }
         context.print_table(&table)?;

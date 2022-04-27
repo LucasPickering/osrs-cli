@@ -77,6 +77,6 @@ impl Display for Skill {
             }
         }
         // Impossible because the macro creates an entry for all skills
-        panic!("Could not format name for skill: {}", self);
+        panic!("Could not format name for skill: {self:?}");
     }
 }

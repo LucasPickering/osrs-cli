@@ -3,10 +3,10 @@ use std::{io::Write, iter};
 use crate::{
     commands::Command,
     error::OsrsError,
-    utils::{context::CommandContext, fmt, math},
+    utils::{context::CommandContext, fmt, math, table::TableExt},
 };
 use async_trait::async_trait;
-use prettytable::{color, format::Alignment, Attr, Cell, Row, Table};
+use comfy_table::{presets, Cell, CellAlignment, Row, Table};
 use structopt::StructOpt;
 
 /// Maximum number of doses per stew
@@ -58,60 +58,51 @@ impl<O: Write> Command<O> for CalcStewCommand {
             probabilities.optimal_doses(Boost(self.boost));
 
         let mut table = Table::new();
-        table.set_format(
-            *prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE,
-        );
-
-        table.set_titles(Row::new(
-            iter::once(Cell::new_align("Doses/Stew", Alignment::RIGHT))
-                // Add one col for each boost number (1-5)
-                .chain((1..=MAX_BOOST).map(|boost| {
-                    let mut cell = Cell::new_align(
-                        &format!("≥+{}", boost),
-                        Alignment::RIGHT,
-                    );
-                    if boost == self.boost {
-                        cell.style(Attr::Bold);
-                    }
-                    cell
-                }))
-                .collect(),
-        ));
+        table
+            .load_preset(presets::ASCII_BORDERS_ONLY_CONDENSED)
+            .set_aligned_header(
+                iter::once((Cell::new("Doses/Stew"), CellAlignment::Right))
+                    // Add one col for each boost number (1-5)
+                    .chain((1..=MAX_BOOST).map(|boost| {
+                        let cell = style_cell(
+                            Cell::new(&format!("≥+{}", boost))
+                                .set_alignment(CellAlignment::Right),
+                            boost == self.boost,
+                            false,
+                        );
+                        (cell, CellAlignment::Right)
+                    })),
+            );
 
         for (doses_per_stew, dose_probabilities) in probabilities.doses_iter() {
-            table.add_row(Row::new(
-                iter::once(Cell::new_align(
-                    &fmt::fmt_int(&doses_per_stew.0),
-                    Alignment::RIGHT,
-                ))
-                // Calculate prob for hitting each boost value (1-5)
-                .chain(dose_probabilities.into_iter().map(|(boost, prob)| {
-                    let mut cell = Cell::new_align(
-                        &fmt::fmt_probability(prob),
-                        Alignment::RIGHT,
-                    );
-
-                    // Bold the column for the requested boost level
-                    if boost == Boost(self.boost) {
-                        cell.style(Attr::Bold);
-                        // Highlight the cell with the highest probability
-                        if doses_per_stew == optimal_doses_per_stew {
-                            cell.style(Attr::ForegroundColor(color::GREEN));
-                        }
-                    }
-
-                    cell
-                }))
-                .collect(),
+            table.add_row(Row::from(
+                iter::once(Cell::new(&fmt::fmt_int(&doses_per_stew.0)))
+                    // Calculate prob for hitting each boost value (1-5)
+                    .chain(dose_probabilities.into_iter().map(
+                        |(boost, prob)| {
+                            let boost_matches = boost == Boost(self.boost);
+                            style_cell(
+                                Cell::new(&fmt::fmt_probability(prob)),
+                                // Bold the column of the requested boost level
+                                boost_matches,
+                                // Highlight cell with highest probability
+                                boost_matches
+                                    && doses_per_stew == optimal_doses_per_stew,
+                            )
+                        },
+                    )),
             ));
         }
 
-        context.println(
-            "The bolded column indicates the requested boost. \
-            The green cell is the optimal number of doses to use per stew, to \
-            maximize your odds of hitting the boost.
-            ",
-        )?;
+        // Styling doesn 't work on wasm so this caption is pointless
+        if cfg!(not(wasm)) {
+            context.println(
+                "The bolded column indicates the requested boost. \
+                The green cell is the optimal number of doses to use per stew, to \
+                maximize your odds of hitting the boost.
+                ",
+            )?;
+        }
         context.print_table(&table)?;
 
         Ok(())
@@ -230,4 +221,26 @@ impl Probabilities {
             },
         )
     }
+}
+
+/// Apply ANSI styling to a cell. This needs to be a separate function so
+/// its functionality can vary for wasm vs native (since ANSI terminal
+/// stuff isn't supported in wasm)
+#[cfg(not(wasm))]
+fn style_cell(mut cell: Cell, bold: bool, color: bool) -> Cell {
+    use comfy_table::{Attribute, Color};
+
+    if bold {
+        cell = cell.add_attribute(Attribute::Bold);
+    }
+    if color {
+        cell = cell.fg(Color::Green);
+    }
+    cell
+}
+
+/// Placehold to match the native call signature
+#[cfg(wasm)]
+fn style_cell(cell: Cell, _bold: bool, _color: bool) -> Cell {
+    cell
 }
