@@ -46,7 +46,7 @@ pub struct HiscorePlayer {
 impl HiscorePlayer {
     /// Load a player's data from the hiscore.
     pub async fn load(username: &str) -> anyhow::Result<Self> {
-        let data: Self = http::get_json(
+        let data: Self = http::get(
             &format!(
                 // https://github.com/LucasPickering/osrs-hiscore-proxy/
                 "https://osrs-hiscore.lucaspickering.me/hiscore/{}",
