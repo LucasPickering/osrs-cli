@@ -53,7 +53,9 @@ impl OsrsOptions {
     /// entrypoint to the program. Callers can customize how the these options
     /// are parsed, then call this function to execute.
     ///
-    /// TODO include note about output
+    /// The type `O` defines how command output will be written. For native
+    /// environments, this will be stdout, whereas for the browser it will be
+    /// a string buffer (which presumably gets written to the DOM).
     pub async fn run<O: Write>(self, output: O) -> anyhow::Result<()> {
         let context = CommandContext::load(output)?;
         self.cmd.command().execute(context).await
