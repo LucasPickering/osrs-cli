@@ -15,7 +15,7 @@ head: <script src="/script/main.js" type="module" />
 
 OSRS CLI is a [command line](https://en.wikipedia.org/wiki/Command-line_interface) app for Old School RuneScape, with numerous calculators, tools, and more. To get started, [install the app locally](/install), then check out the [user guide](/guide) for instructions.
 
-Or, **try it right here and now!** (Disclaimer: not all commands work in the browser yet, I'm trying my best)
+Or, **try it right here and now!**
 
 <div id="terminal"></div>
 
