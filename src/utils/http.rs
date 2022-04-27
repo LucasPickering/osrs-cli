@@ -1,32 +1,25 @@
 //! Utilities related to HTTP requests
 
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client,
+};
 use serde::de::DeserializeOwned;
 use std::{
     ops::Deref,
     sync::{RwLock, RwLockReadGuard, TryLockError},
 };
 
-/// Perform an HTTP GET request.
-pub async fn get(
-    path: &str,
-    query_params: &[(&str, &str)],
-) -> anyhow::Result<String> {
-    let response = http_client()?.get(path).query(query_params).send().await?;
-    let body = response.error_for_status()?.text().await?;
-    Ok(body)
-}
-
-/// TODO
-pub async fn get_json<T: DeserializeOwned>(
+/// Perform an HTTP GET request. The response is assumed to be JSON (as that's
+/// what all current usages return).
+pub async fn get<T: DeserializeOwned>(
     path: &str,
     query_params: &[(&str, &str)],
 ) -> anyhow::Result<T> {
-    // TODO after hiscore API is proxied through JSON, merge this with the
-    // default request since all requests will be JSON. Also make sure to set
-    // Accept: application/json
-    let body = get(path, query_params).await?;
-    Ok(serde_json::from_str(body.as_str())?)
+    let response = http_client()?.get(path).query(query_params).send().await?;
+    let body = response.error_for_status()?.text().await?;
+    let json = serde_json::from_str(body.as_str())?;
+    Ok(json)
 }
 
 /// Build a URL from a base path and list of query params. Each param's value
@@ -45,6 +38,11 @@ pub fn url(path: &str, query_params: &[(&str, &str)]) -> String {
 /// *all* requests from the app, so we guarantee consistency of HTTP headers.
 fn http_client() -> anyhow::Result<Client> {
     let builder = Client::builder();
+
+    // All requests atm are JSON so set that here
+    let mut headers = HeaderMap::new();
+    headers.insert("Accept", HeaderValue::from_static("application/json"));
+    let builder = builder.default_headers(headers);
 
     // The OSRS Wiki requests we set this for any requests to their API, but we
     // might as well just put it on all requests for consistency. Reqwest
@@ -95,7 +93,7 @@ impl<T: DeserializeOwned> HttpCache<T> {
 
         if !is_loaded {
             // Load the data from HTTP, then store it in the cache
-            let response = get_json(&self.url, &[]).await?;
+            let response = get(&self.url, &[]).await?;
             let mut data_ref = self.data.try_write().map_err(map_lock_err)?;
             *data_ref = Some(response);
         }
