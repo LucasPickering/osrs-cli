@@ -59,10 +59,10 @@ jobs:
     name: cargo-publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cache Rust files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.rustup
@@ -108,10 +108,10 @@ jobs:
             target: x86_64-pc-windows-gnu
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cache Rust files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.rustup

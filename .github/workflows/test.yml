@@ -16,17 +16,17 @@ jobs:
     name: "Rustfmt"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Cache cargo files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.rustup
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain.toml') }}
 
       # Enable after https://github.com/actions-rs/toolchain/issues/126
       # - name: Install Rust
@@ -68,10 +68,10 @@ jobs:
       RUSTUP_TOOLCHAIN: ${{ matrix.rust }}
       CARGO_BUILD_TARGET: ${{ matrix.target }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - name: Cache Rust files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.rustup

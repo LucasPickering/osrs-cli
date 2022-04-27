@@ -1,4 +1,7 @@
-# osrs-cli
+# [osrs-cli](https://osrs.lucaspickering.me)
+
+[![Test Status](https://github.com/LucasPickering/osrs-cli/actions/workflows/test.yml/badge.svg)](https://github.com/LucasPickering/osrs-cli/actions/workflows/test.yml)
+[![crates.io version](https://img.shields.io/crates/v/osrs-cli.svg)](https://crates.io/crates/osrs-cli)
 
 A command line tool for doing lookups and calculations related to Oldschool RuneScape. Features include:
 
