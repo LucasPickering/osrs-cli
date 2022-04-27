@@ -1,6 +1,6 @@
 const { runCommand } = await import("osrs-cli");
 import { Terminal } from "xterm";
-import XtermJSShell from "simple-shell";
+import { XtermShell } from "xterm-shell";
 import { FitAddon } from "xterm-addon-fit";
 import theme from "./styles/theme.module.scss";
 import "xterm/css/xterm.css";
@@ -12,7 +12,7 @@ const terminal = new Terminal({
 const fitAddon = new FitAddon();
 terminal.loadAddon(fitAddon);
 
-const shell = new XtermJSShell(terminal);
+const shell = new XtermShell(terminal);
 shell
   .setPrompt("> osrs ")
   .addGlobalCommandHandler(async (shell, command, args) => {
