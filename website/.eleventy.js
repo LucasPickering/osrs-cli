@@ -7,6 +7,9 @@ module.exports = function (eleventyConfig) {
     port: 3000,
   });
 
+  eleventyConfig.addPassthroughCopy("src/*.ico");
+  eleventyConfig.addWatchTarget("./src/styles/");
+
   // Markdown Overrides
   const markdownLibrary = markdownIt({
     html: true,
@@ -18,8 +21,6 @@ module.exports = function (eleventyConfig) {
     permalinkSymbol: "#",
   });
   eleventyConfig.setLibrary("md", markdownLibrary);
-
-  eleventyConfig.addWatchTarget("./src/styles/");
 
   return {
     dir: {

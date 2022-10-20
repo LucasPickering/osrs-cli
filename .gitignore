@@ -4,3 +4,4 @@
 /website/node_modules/
 /website/wasm/
 osrs.json
+.DS_Store
