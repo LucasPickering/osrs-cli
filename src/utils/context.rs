@@ -29,14 +29,14 @@ impl<O: Write> CommandContext<O> {
     /// Print data to output, followed by a newline
     pub fn println(&mut self, data: &str) -> anyhow::Result<()> {
         self.output.write_all(data.as_bytes())?;
-        self.output.write_all("\n".as_bytes())?;
+        self.output.write_all(b"\n")?;
         Ok(())
     }
 
     /// print a formatted string to output, followed by a newline
     pub fn println_fmt(&mut self, fmt: Arguments<'_>) -> anyhow::Result<()> {
         self.output.write_fmt(fmt)?;
-        self.output.write_all("\n".as_bytes())?;
+        self.output.write_all(b"\n")?;
         Ok(())
     }
 

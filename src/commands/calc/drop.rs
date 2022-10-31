@@ -61,7 +61,7 @@ impl<O: Write> Command<O> for CalcDropCommand {
         let result_prob: f64 = math::binomial_cdf(
             self.probability,
             iterations,
-            &mut self.target.as_values(iterations),
+            self.target.as_values(iterations),
         );
 
         context.println_fmt(format_args!(
@@ -142,11 +142,11 @@ enum TargetRange {
 impl TargetRange {
     /// Convert to an iterator of values. This should cover all values in the
     /// target range, as a sub-set of `[0, iterations]`.
-    fn as_values(&self, iterations: usize) -> Box<dyn Iterator<Item = usize>> {
+    fn as_values(&self, iterations: usize) -> impl Iterator<Item = usize> {
         match self {
-            Self::Eq(k) => Box::new(*k..=*k),
-            Self::Lte(k) => Box::new(0..=*k),
-            Self::Gte(k) => Box::new(*k..=iterations),
+            Self::Eq(k) => *k..=*k,
+            Self::Lte(k) => 0..=*k,
+            Self::Gte(k) => *k..=iterations,
         }
     }
 }

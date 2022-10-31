@@ -43,7 +43,7 @@ pub fn binomial(p: f64, n: usize, k: usize) -> f64 {
 pub fn binomial_cdf(
     p: f64,
     n: usize,
-    k_values: &mut dyn Iterator<Item = usize>,
+    k_values: impl Iterator<Item = usize>,
 ) -> f64 {
     let helper = |iter: &mut dyn Iterator<Item = usize>| {
         iter.map(|k_i| binomial(p, n, k_i)).sum()

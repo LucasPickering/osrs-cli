@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # [package.metadata.wasm-pack.profile.release]
 # wasm-opt = false
 
-# https://github.com/rust-lang/cargo/issues/3138 disable this for wasm
+# https://github.com/rust-lang/cargo/issues/9208 disable this for wasm
 [[bin]]
 name = "osrs"
 path = "src/bin.rs"
