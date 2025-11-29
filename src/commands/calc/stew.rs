@@ -65,7 +65,7 @@ impl<O: Write> Command<O> for CalcStewCommand {
                     // Add one col for each boost number (1-5)
                     .chain((1..=MAX_BOOST).map(|boost| {
                         let cell = style_cell(
-                            Cell::new(&format!("≥+{}", boost))
+                            Cell::new(format!("≥+{}", boost))
                                 .set_alignment(CellAlignment::Right),
                             boost == self.boost,
                             false,
@@ -76,13 +76,13 @@ impl<O: Write> Command<O> for CalcStewCommand {
 
         for (doses_per_stew, dose_probabilities) in probabilities.doses_iter() {
             table.add_row(Row::from(
-                iter::once(Cell::new(&fmt::fmt_int(&doses_per_stew.0)))
+                iter::once(Cell::new(fmt::fmt_int(&doses_per_stew.0)))
                     // Calculate prob for hitting each boost value (1-5)
                     .chain(dose_probabilities.into_iter().map(
                         |(boost, prob)| {
                             let boost_matches = boost == Boost(self.boost);
                             style_cell(
-                                Cell::new(&fmt::fmt_probability(prob)),
+                                Cell::new(fmt::fmt_probability(prob)),
                                 // Bold the column of the requested boost level
                                 boost_matches,
                                 // Highlight cell with highest probability

@@ -41,10 +41,10 @@ impl<O: Write> Command<O> for PingCommand {
             match self.count {
                 // On Windows, "-n -1" means run forever
                 None => {
-                    cmd.args(&["-n", "-1"]);
+                    cmd.args(["-n", "-1"]);
                 }
                 Some(count) => {
-                    cmd.args(&["-n", &count.to_string()]);
+                    cmd.args(["-n", &count.to_string()]);
                 }
             };
         } else {
@@ -52,7 +52,7 @@ impl<O: Write> Command<O> for PingCommand {
                 // On Linux, it runs forever if you just omit "-c"
                 None => {}
                 Some(count) => {
-                    cmd.args(&["-c", &count.to_string()]);
+                    cmd.args(["-c", &count.to_string()]);
                 }
             }
         };

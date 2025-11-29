@@ -79,7 +79,7 @@ mod native {
                 // dir
                 dirs::config_dir()
                     .or_else(dirs::home_dir)
-                    .unwrap_or_else(PathBuf::new)
+                    .unwrap_or_default()
             };
 
             config_dir.join("osrs.json")
