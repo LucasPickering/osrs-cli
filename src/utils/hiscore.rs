@@ -12,8 +12,8 @@ use serde::Deserialize;
 pub struct HiscoreSkill {
     /// The skill name.
     pub name: Skill,
-    /// The player's rank in this skill (higher is better).
-    pub rank: usize,
+    /// The player's rank in this skill (higher is better). -1 if unranked
+    pub rank: isize,
     /// The player's level in the skill.
     pub level: usize,
     /// The player's total xp in the skill.
@@ -23,13 +23,13 @@ pub struct HiscoreSkill {
 /// A minigame/boss/other stat tracked on the hiscores. This captures everything
 /// other than skills.
 #[derive(Clone, Debug, Deserialize)]
-pub struct HiscoreMinigame {
+pub struct HiscoreActivity {
     /// The minigame/boss name
     pub name: String,
-    /// The player's rank in this minigame
-    pub rank: usize,
-    /// The minigame score/completion count/kill count
-    pub score: usize,
+    /// The player's rank in this minigame. -1 if unranked
+    pub rank: isize,
+    /// The minigame score/completion count/kill count. -1 if unranked
+    pub score: isize,
 }
 
 /// Hiscore results for a player.
@@ -40,21 +40,21 @@ pub struct HiscorePlayer {
     pub skills: Vec<HiscoreSkill>,
     /// Data on all minigames/bosses for the player. Missing minigames (ones
     /// that the hiscores didn't provide data on) will be excluded here
-    pub minigames: Vec<HiscoreMinigame>,
+    pub activities: Vec<HiscoreActivity>,
 }
 
 impl HiscorePlayer {
     /// Load a player's data from the hiscore.
     pub async fn load(username: &str) -> anyhow::Result<Self> {
-        let data: Self = http::get(
-            &format!(
-                // https://github.com/LucasPickering/osrs-hiscore-proxy/
-                "https://osrs-hiscore.lucaspickering.me/hiscore/{}",
-                username
-            ),
-            &[],
+        let mut data: Self = http::get(
+            "https://secure.runescape.com/m=hiscore_oldschool/index_lite.json",
+            &[("player", username)],
         )
         .await?;
+
+        // Filter out activities with no history. This matches the behavior of
+        // the official hiscores site
+        data.activities.retain(|activity| activity.rank >= 0);
 
         Ok(data)
     }

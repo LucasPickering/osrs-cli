@@ -26,7 +26,7 @@ macro_rules! skills {
 skills! {
     // The full name will be used for display/parsing automatically. We only
     // need to specify other aliases.
-    (Total, &[]),
+    (Overall, &[]),
     (Attack, &["atk"]),
     (Defence, &["defense", "def"]),
     (Strength, &["str"]),
@@ -45,9 +45,10 @@ skills! {
     (Herblore, &["herb"]),
     (Agility, &["agi"]),
     (Thieving, &["thieve", "thief"]),
+    (Sailing, &["sail"]),
     (Slayer, &["slay"]),
     (Farming, &["farm"]),
-    (Runecrafting, &["rc", "runecraft"]),
+    (Runecraft, &["rc"]),
     (Hunter, &["hunt"]),
     (Construction, &["con", "cons"]),
 }

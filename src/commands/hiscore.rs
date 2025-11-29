@@ -66,7 +66,7 @@ impl<O: Write> Command<O> for HiscoreCommand {
                 ("Rank", CellAlignment::Right),
                 ("Score", CellAlignment::Right),
             ]);
-        for minigame in player.minigames {
+        for minigame in player.activities {
             table.add_row(vec![
                 minigame.name,
                 fmt::fmt_int(&minigame.rank),
