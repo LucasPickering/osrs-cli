@@ -54,7 +54,7 @@ jobs:
           # If you update stable, make sure to update Cargo.toml
           - "1.58"
           # If you update nightly, make sure to update rust-toolchain.toml
-          - nightly-2022-04-25
+          - nightly-2025-11-29
         target:
           # Don't bother testing all targets because linting should only be
           # different for wasm vs non-wasm
