@@ -1,4 +1,4 @@
-#[cfg(wasm)]
+#[cfg(target_family = "wasm")]
 pub mod browser;
 pub mod context;
 pub mod fmt;

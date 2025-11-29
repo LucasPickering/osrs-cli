@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![cfg_attr(nightly, feature(backtrace))]
 
-#[cfg(not(wasm))]
+#[cfg(not(target_family = "wasm"))]
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     use osrs_cli::OsrsOptions;
@@ -31,7 +31,7 @@ async fn main() {
     process::exit(exit_code);
 }
 
-#[cfg(wasm)]
+#[cfg(target_family = "wasm")]
 fn main() {
     // Delete after https://github.com/rust-lang/cargo/issues/3138
     println!("Bin not supported on Wasm");

@@ -21,7 +21,7 @@ impl OsrsConfig {
 }
 
 // Native implementation, which stores the config on the file system
-#[cfg(not(wasm))]
+#[cfg(not(target_family = "wasm"))]
 mod native {
     use super::*;
     use std::{
@@ -88,7 +88,7 @@ mod native {
 }
 
 // Wasm implementation, which stores the config in browser local storage
-#[cfg(wasm)]
+#[cfg(target_family = "wasm")]
 mod wasm {
     use super::*;
     use crate::utils::browser::LocalStorage;

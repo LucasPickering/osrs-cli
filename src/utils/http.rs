@@ -48,7 +48,7 @@ fn http_client() -> anyhow::Result<Client> {
     // might as well just put it on all requests for consistency. Reqwest
     // doesn't support setting User-Agent in Wasm though, since the browser sets
     // that field itself. https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices#Please_set_a_descriptive_User-Agent!
-    #[cfg(not(wasm))]
+    #[cfg(not(target_family = "wasm"))]
     let builder =
         builder.user_agent(concat!("osrs-cli/", env!("CARGO_PKG_VERSION")));
 

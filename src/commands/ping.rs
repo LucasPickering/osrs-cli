@@ -6,7 +6,7 @@ use std::io::Write;
 use structopt::StructOpt;
 
 /// Run a network ping against a world
-#[cfg_attr(wasm, allow(unused))]
+#[cfg_attr(target_family = "wasm", allow(unused))]
 #[derive(Debug, StructOpt)]
 pub struct PingCommand {
     /// The number of the world you want to ping
@@ -19,7 +19,7 @@ pub struct PingCommand {
 #[async_trait(?Send)]
 impl<O: Write> Command<O> for PingCommand {
     // Native implementation
-    #[cfg(not(wasm))]
+    #[cfg(not(target_family = "wasm"))]
     async fn execute(&self, _context: CommandContext<O>) -> anyhow::Result<()>
     where
         O: 'async_trait,
@@ -65,7 +65,7 @@ impl<O: Write> Command<O> for PingCommand {
     }
 
     // Browser implementation
-    #[cfg(wasm)]
+    #[cfg(target_family = "wasm")]
     async fn execute(&self, _context: CommandContext<O>) -> anyhow::Result<()>
     where
         O: 'async_trait,

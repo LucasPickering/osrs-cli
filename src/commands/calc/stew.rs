@@ -95,7 +95,7 @@ impl<O: Write> Command<O> for CalcStewCommand {
         }
 
         // Styling doesn 't work on wasm so this caption is pointless
-        if cfg!(not(wasm)) {
+        if cfg!(not(target_family = "wasm")) {
             context.println(
                 "The bolded column indicates the requested boost. \
                 The green cell is the optimal number of doses to use per stew, to \
@@ -226,7 +226,7 @@ impl Probabilities {
 /// Apply ANSI styling to a cell. This needs to be a separate function so
 /// its functionality can vary for wasm vs native (since ANSI terminal
 /// stuff isn't supported in wasm)
-#[cfg(not(wasm))]
+#[cfg(not(target_family = "wasm"))]
 fn style_cell(mut cell: Cell, bold: bool, color: bool) -> Cell {
     use comfy_table::{Attribute, Color};
 
@@ -240,7 +240,7 @@ fn style_cell(mut cell: Cell, bold: bool, color: bool) -> Cell {
 }
 
 /// Placehold to match the native call signature
-#[cfg(wasm)]
+#[cfg(target_family = "wasm")]
 fn style_cell(cell: Cell, _bold: bool, _color: bool) -> Cell {
     cell
 }

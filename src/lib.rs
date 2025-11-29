@@ -63,7 +63,7 @@ impl OsrsOptions {
 }
 
 /// Public WebAssembly API
-#[cfg(wasm)]
+#[cfg(target_family = "wasm")]
 mod wasm {
     use super::*;
     use crate::error::OsrsError;

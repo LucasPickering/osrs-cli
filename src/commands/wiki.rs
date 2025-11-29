@@ -16,7 +16,7 @@ pub struct WikiCommand {
 #[async_trait(?Send)]
 impl<O: Write> Command<O> for WikiCommand {
     // Native implementation
-    #[cfg(not(wasm))]
+    #[cfg(not(target_family = "wasm"))]
     async fn execute(&self, _context: CommandContext<O>) -> anyhow::Result<()>
     where
         O: 'async_trait,
@@ -26,7 +26,7 @@ impl<O: Write> Command<O> for WikiCommand {
     }
 
     // Browser implementation
-    #[cfg(wasm)]
+    #[cfg(target_family = "wasm")]
     async fn execute(&self, _context: CommandContext<O>) -> anyhow::Result<()>
     where
         O: 'async_trait,
