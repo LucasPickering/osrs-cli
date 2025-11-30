@@ -69,3 +69,8 @@ web-sys = {version = "^0.3.55", features = [
   "Storage",
   "Window",
 ]}
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
