@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#383838" />
+    <meta name="description" content="OSRS CLI" />
+    <!-- TODO Enable once we have a favicon -->
+    <!-- <link rel="icon" href="/favicon.ico" /> -->
+    <link rel="stylesheet" href="/styles.css" />
+    <title>OSRS CLI</title>
+    
+  </head>
+  <body>
+    <div id="root">
+      <header class="nav-header">
+        <nav class="nav-content">
+          <div>
+            <a href="/">Home</a>
+            <a href="/terminal">Try It!</a>
+            <a href="/install">Install</a>
+            <a href="/guide">Guide</a>
+          </div>
+          <div>
+            <a href="https://github.com/LucasPickering/osrs-cli">Code</a>
+            <a href="https://github.com/LucasPickering/osrs-cli/issues/new">
+              Report a Bug
+            </a>
+            <a href="https://crates.io/crates/osrs-cli">crates.io</a>
+          </div>
+        </nav>
+      </header>
+
+      
+<main id="main-content"><h1 id="installation" tabindex="-1">Installation <a class="header-anchor" href="#installation">#</a></h1>
+<p>There are a few ways to install the OSRS CLI:</p>
+<ul>
+<li>From binary (the easiest)</li>
+<li>From <a href="https://crates.io">crates.io</a></li>
+<li>From source</li>
+</ul>
+<h2 id="from-binary" tabindex="-1">From Binary <a class="header-anchor" href="#from-binary">#</a></h2>
+<p>Go to <a href="https://github.com/LucasPickering/osrs-cli/releases/latest">the latest release</a> and download the release for your platform (for Windows, you probably want the <code>msvc</code> version). Extract the archive and copy the executable file (either <code>osrs</code> or <code>osrs.exe</code>) to a directory in your <code>PATH</code>.</p>
+<p>If you want to download a newer version of the app, you'll have to follow these same instructions again with the newest release.</p>
+<h2 id="from-crates.io" tabindex="-1">From <a href="http://crates.io">crates.io</a> <a class="header-anchor" href="#from-crates.io">#</a></h2>
+<p>You can install this tool from <a href="https://crates.io/crates/osrs-cli">crates.io</a> if you have a working Rust toolchain installed. <a href="https://doc.rust-lang.org/cargo/getting-started/installation.html">See here</a> for setup instructions. Then run:</p>
+<pre><code class="language-sh">cargo install osrs-cli
+</code></pre>
+<p>This will install the latest version of the CLI to your path automatically. The advantage of this approach is you can easily download new versions using the same command.</p>
+<h2 id="from-source" tabindex="-1">From Source <a class="header-anchor" href="#from-source">#</a></h2>
+<p>This is the most involved option, and you probably only want it if you really want to use an unreleased version of the tool. You'll need a working Rust toolchain for this (see instructions in the &quot;<a href="http://crates.io">crates.io</a>&quot; section above). Then, clone <a href="https://github.com/LucasPickering/osrs-cli">the repo</a> and run:</p>
+<pre><code class="language-sh">cargo install --path .
+</code></pre>
+</main>
+
+    </div>
+  </body>
+</html>

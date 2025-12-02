@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#383838" />
+    <meta name="description" content="OSRS CLI" />
+    <!-- TODO Enable once we have a favicon -->
+    <!-- <link rel="icon" href="/favicon.ico" /> -->
+    <link rel="stylesheet" href="/styles.css" />
+    <title>OSRS CLI</title>
+    
+  </head>
+  <body>
+    <div id="root">
+      <header class="nav-header">
+        <nav class="nav-content">
+          <div>
+            <a href="/">Home</a>
+            <a href="/terminal">Try It!</a>
+            <a href="/install">Install</a>
+            <a href="/guide">Guide</a>
+          </div>
+          <div>
+            <a href="https://github.com/LucasPickering/osrs-cli">Code</a>
+            <a href="https://github.com/LucasPickering/osrs-cli/issues/new">
+              Report a Bug
+            </a>
+            <a href="https://crates.io/crates/osrs-cli">crates.io</a>
+          </div>
+        </nav>
+      </header>
+
+      
+<main id="main-content"><h1 id="usage-guide" tabindex="-1">Usage Guide <a class="header-anchor" href="#usage-guide">#</a></h1>
+<h2 id="table-of-contents" tabindex="-1">Table of Contents <a class="header-anchor" href="#table-of-contents">#</a></h2>
+<ul>
+<li><a href="#commands">Commands</a>
+<ul>
+<li><a href="#hiscore-lookup">Hiscore Lookup</a></li>
+<li><a href="#price-lookup">Price Lookup</a></li>
+<li><a href="#calculators">Calculators</a>
+<ul>
+<li><a href="#calculate-drop-rate">Drop Rate</a></li>
+<li><a href="#calculate-xp-to-a-level">XP/Levels</a></li>
+<li><a href="#calculate-spicy-stew-boosts">Spicy Stews</a></li>
+</ul>
+</li>
+<li><a href="#search-the-wiki">Wiki Search</a></li>
+<li><a href="#ping-a-world">Ping</a></li>
+</ul>
+</li>
+<li><a href="#configuration">Configuration</a></li>
+</ul>
+<h2 id="commands" tabindex="-1">Commands <a class="header-anchor" href="#commands">#</a></h2>
+<p>For any command, you can get detailed information about arguments and usage with <code>--help</code>, for example:</p>
+<pre><code>osrs --help
+osrs calc --help
+osrs calc drop --help
+</code></pre>
+<h3 id="hiscore-lookup" tabindex="-1">Hiscore lookup <a class="header-anchor" href="#hiscore-lookup">#</a></h3>
+<p>Look up a user's stats and kill counts in the hiscores:</p>
+<pre><code>&gt; osrs hiscore Swampletics
+Skills
++--------------+-----------+-------+-------------+
+| Skill        |      Rank | Level |          XP |
++--------------+-----------+-------+-------------+
+| Total        |   387,328 | 1,796 | 121,473,079 |
+|              (output abbreviated)              |
+| Hunter       |    19,900 |    99 |  13,640,216 |
+| Construction |   726,562 |    55 |     174,955 |
++--------------+-----------+-------+-------------+
+
+Minigames
++----------------------+-----------+-------+
+| Minigame             |      Rank | Score |
++----------------------+-----------+-------+
+| Clue Scroll (Medium) | 1,056,506 |     1 |
+| Barrows Chests       |     1,518 | 2,183 |
+| Theatre of Blood     |    23,547 |   125 |
++----------------------+-----------+-------+
+</code></pre>
+<p>You can <a href="#storing-your-username-for-easier-lookups">store your own username in your config file</a> so that the <code>hiscore</code> subcommand, and others that require fetching skill information, can use your RSN when none is provided.</p>
+<h3 id="price-lookup" tabindex="-1">Price Lookup <a class="header-anchor" href="#price-lookup">#</a></h3>
+<p>Look up prices on the Grand Exchange using the <code>price</code> subcommand:</p>
+<pre><code>$ osrs price bandos godsword
++------------------------------+------------+
+| Item                         |      Price |
++------------------------------+------------+
+| Bandos godsword              | 17,611,983 |
+| Bandos godsword ornament kit |  5,800,944 |
++------------------------------+------------+
+</code></pre>
+<p>Alternatively, you can use the <code>osrs ge</code> alias.</p>
+<h3 id="calculators" tabindex="-1">Calculators <a class="header-anchor" href="#calculators">#</a></h3>
+<p>The tool has a number of calculators, all under the <code>osrs calc</code> subcommand</p>
+<h4 id="calculate-drop-rate" tabindex="-1">Calculate drop rate <a class="header-anchor" href="#calculate-drop-rate">#</a></h4>
+<p>If you're going for a pet with a 1/5000 drop rate and you want to know the odds of getting it in the first 1000 kills:</p>
+<pre><code>$ osrs calc drop -p 1/5000 -n 1000
+18.1286% chance of ≥1 successes in 1000 attempts
+</code></pre>
+<p>Or if you want to know the odds of getting all 4 pieces of the Angler's Outfit in 40 Fishing Trawler trips:</p>
+<pre><code>$ osrs calc drop -p 1/12 -n 40 -t 4+
+43.0149% chance of ≥4 successes in 40 attempts
+</code></pre>
+<p>Some bosses have multiple loot table rolls. For example, calculating the chance of getting 4+ Black tourmaline core drops in 221 kills from <a href="https://oldschool.runescape.wiki/w/Grotesque_Guardians#Drops">Grostesque Guardians</a>:</p>
+<pre><code>$ osrs calc drop -p 1/1000 --rolls 2 --kc 221 -t 4+
+0.1108% chance of ≥4 successes in 221 attempts, with 2 roll(s)/attempt
+</code></pre>
+<h4 id="calculate-xp-to-a-level" tabindex="-1">Calculate XP to a level <a class="header-anchor" href="#calculate-xp-to-a-level">#</a></h4>
+<p>Calculate the XP needed to a target. The source can be a level, XP value, or a skill+player combination (their current XP will be looked up on the hiscores). The target can be a level or XP value.</p>
+<pre><code>$ osrs calc xp --from-xp 100000 --to-lvl 80
+100,000 XP (Level 49) =&gt; 1,986,068 XP (Level 80) = 1,886,068 XP
+
+$ osrs calc xp --from-lvl 50 --to-lvl 60
+101,333 XP (Level 50) =&gt; 273,742 XP (Level 60) = 172,409 XP
+
+$ osrs calc xp --player swampletics --skill smithing --to-xp 12345678
+1,039,361 XP (Level 73) =&gt; 12,345,678 XP (Level 98) = 11,306,317 XP
+</code></pre>
+<p>Alternatively, want to know what level you'll be after gaining a certain amount of XP? Maybe you want to know what level you'll have after a quest?</p>
+<pre><code>$ osrs calc xp --from-lvl 1 --plus-xp 13750
+0 XP (Level 1) =&gt; 13,750 XP (Level 30) = 13,750 XP
+</code></pre>
+<h4 id="calculate-spicy-stew-boosts" tabindex="-1">Calculate spicy stew boosts <a class="header-anchor" href="#calculate-spicy-stew-boosts">#</a></h4>
+<p>Tired of training for achievement diaries? Ever wondered how many doses of spice you should collect before attempting a spicy stew boost? This calculator will help you out!</p>
+<pre><code>&gt; osrs calc stew --doses 25 --boost 3
+
++------------+-------+-------+-------+-------+-------+
+| Doses/Stew |   ≥+1 |   ≥+2 |   ≥+3 |   ≥+4 |   ≥+5 |
++------------+-------+-------+-------+-------+-------+
+|          1 | 99.9% |  0.0% |  0.0% |  0.0% |  0.0% |
+|          2 | 99.6% | 96.8% | 79.9% |  0.0% |  0.0% |
+|          3 | 98.7% | 96.1% | 90.0% | 76.8% | 50.0% |
++------------+-------+-------+-------+-------+-------+
+</code></pre>
+<p>Not only will it tell you the odds of hitting your desired boost, it will tell you how many doses you should put in each stew to maximize that chance. In this case, if you want a boost of 3 (or more), you should put 3 doses in each stew, to get a 90% chance of hitting that boost at least once (in 8 stews).</p>
+<h3 id="search-the-wiki" tabindex="-1">Search the wiki <a class="header-anchor" href="#search-the-wiki">#</a></h3>
+<p>Search any term on the <a href="https://oldschool.runescape.wiki/">Old School RuneScape Wiki</a>:</p>
+<pre><code>osrs wiki shark
+osrs wiki one small favour
+</code></pre>
+<h3 id="ping-a-world" tabindex="-1">Ping a world <a class="header-anchor" href="#ping-a-world">#</a></h3>
+<p><strong>Note: Not available in the web version, because of limitations in the browser</strong></p>
+<p>Curious how laggy a world will be? Ping it!</p>
+<pre><code>osrs ping 450
+</code></pre>
+<h2 id="configuration" tabindex="-1">Configuration <a class="header-anchor" href="#configuration">#</a></h2>
+<p>OSRS CLI supports persistent configuration to store common inputs. Configuration can be read and modified via the <code>osrs config</code> subcommand family. Some examples:</p>
+<pre><code class="language-sh">osrs config get # Get the entire config
+osrs config get default_player # Get the default_player field
+osrs config set default_player Lynx Titan # Set the default_player
+</code></pre>
+<h4 id="storing-your-username-for-easier-lookups" tabindex="-1">Storing your username for easier lookups <a class="header-anchor" href="#storing-your-username-for-easier-lookups">#</a></h4>
+<p>If you often do a hiscore lookup for your username (or someone else's), you can store that as the default with:</p>
+<pre><code>osrs config set default_player &lt;username&gt;
+</code></pre>
+<p>Then you can just use <code>osrs hiscore</code> to do a lookup on the default player. This username will also be used for any other player lookups, e.g. <code>osrs calc xp --skill smithing</code>.</p>
+</main>
+
+    </div>
+  </body>
+</html>
