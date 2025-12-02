@@ -43,7 +43,7 @@
     "xterm-shell": "^1.0.3"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^0.12.1",
+    "@11ty/eleventy": "^3.1.2",
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "css-loader": "^7.1.2",
     "markdown-it-anchor": "^9.2.0",
