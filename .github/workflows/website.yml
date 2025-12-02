@@ -1,12 +1,16 @@
 name: Build and Deploy Website
 
 on:
-  # Run on every PR and master just so we know the build didn't break
-  push:
-    branches:
-      - master
-      - release
+  # Run on every PR just so we know the build didn't break
   pull_request:
+
+  # Run on release
+  push:
+    tags:
+      - "**[0-9]+.[0-9]+.[0-9]+*"
+
+  # Run manually
+  workflow_dispatch:
 
 jobs:
   build:
@@ -40,32 +44,15 @@ jobs:
         working-directory: website
         run: mise run build
 
-      - name: Archive build
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: website/dist
-
-  # Deploy only on release
-  deploy:
-    name: "Deploy"
-    runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/release' }}
-    needs:
-      - build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Download build artifact
-        id: download
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-          path: website/dist
-
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.7
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@v4.6.8
+        # Deploy only on master or push event (tag releases). For tag pushes,
+        # the ref isn't set to master event though the tag is always on the
+        # master branch
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'push' }}
         with:
           branch: gh-pages
-          folder: ${{ steps.download.outputs.download-path }}
+          # Gotta tell the action where to find mdbook's output
+          folder: website/dist
+          token: ${{ secrets.GITHUB_TOKEN }}
+          single-commit: true
