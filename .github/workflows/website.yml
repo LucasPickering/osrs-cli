@@ -1,12 +1,16 @@
 name: Build and Deploy Website
 
 on:
-  # Run on every PR and master just so we know the build didn't break
-  push:
-    branches:
-      - master
-      - release
+  # Run on every PR just so we know the build didn't break
   pull_request:
+
+  # Run on release
+  push:
+    tags:
+      - "**[0-9]+.[0-9]+.[0-9]+*"
+
+  # Run manually
+  workflow_dispatch:
 
 jobs:
   build:
@@ -50,7 +54,7 @@ jobs:
   deploy:
     name: "Deploy"
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/release' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs:
       - build
     steps:
