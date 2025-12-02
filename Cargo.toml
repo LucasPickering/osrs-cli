@@ -6,8 +6,8 @@ keywords = ["osrs", "runescape"]
 license = "MIT"
 name = "osrs-cli"
 repository = "https://github.com/LucasPickering/osrs-cli"
-# If you update this, make sure to update the version used in ci.yml
-rust-version = "1.58"
+# If you update this, make sure to update the version used in test.yml and rust-toolchain.yml
+rust-version = "1.91"
 version = "2.0.0"
 
 [lib]
@@ -49,9 +49,9 @@ assert_approx_eq = "^1.1.0"
 # Non-wasm dependencies (stuff that can't run in the browser)
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 comfy-table = "^5.0.1" # tty feature not supported in wasm
-dirs = "4.0" 
-open = "^2.0.1" 
-tokio = {version = "^1.15.0", default-features = false, features = ["macros", "rt"]} 
+dirs = "4.0"
+open = "^2.0.1"
+tokio = {version = "^1.15.0", default-features = false, features = ["macros", "rt"]}
 
 # Wasm-only dependencies
 [target.'cfg(target_family = "wasm")'.dependencies]

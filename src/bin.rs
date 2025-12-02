@@ -1,5 +1,4 @@
 #![deny(clippy::all)]
-#![cfg_attr(nightly, feature(backtrace))]
 
 #[cfg(not(target_family = "wasm"))]
 #[tokio::main(flavor = "current_thread")]
@@ -13,18 +12,6 @@ async fn main() {
         Ok(()) => 0,
         Err(err) => {
             eprintln!("{:#}", err);
-
-            // Only use backtraces on nightly
-            #[cfg(nightly)]
-            {
-                // print a backtrace if available
-                use std::backtrace::BacktraceStatus;
-                let bt = err.backtrace();
-                if bt.status() == BacktraceStatus::Captured {
-                    eprintln!("{}", bt);
-                }
-            }
-
             1
         }
     };
