@@ -82,6 +82,7 @@ The CLI is written entirely in Rust.
 Required tools:
 
 - [rustup](https://rustup.rs/)
+- [mise](https://mise.jdx.dev/installing-mise.html)
 
 ```sh
 cargo run -- help # Run any command
@@ -92,14 +93,9 @@ cargo test # Run unit tests
 
 The website is HTML/CSS, compiled using the 11ty framework.
 
-Required tools:
-
-- [nvm](https://github.com/nvm-sh/nvm)
-
 ```sh
 cd website
-npm install
-npm run start
+mise run start
 ```
 
 Change files and you should see the site refresh in your browser.

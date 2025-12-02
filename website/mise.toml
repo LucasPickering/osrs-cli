@@ -1,0 +1,16 @@
+[tasks.build]
+description = "Build website assets"
+depends = ["install"]
+run = "npm run build"
+
+[tasks.install]
+description = "Install JS dependencies for the website"
+run = "npm install"
+
+[tasks.start]
+description = "Build and serve the website"
+depends = ["install"]
+run = "npm run start"
+
+[tools]
+node = "24"

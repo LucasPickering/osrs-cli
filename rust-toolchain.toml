@@ -2,3 +2,4 @@
 # If you update this, make sure to update the version in Cargo.toml
 channel = "1.91"
 components = ["cargo", "clippy", "rustfmt"]
+targets = ["wasm32-unknown-unknown"]
